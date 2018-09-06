@@ -68,8 +68,8 @@ bin-release/
 parser.cc
 parser.hh
 
-location.hh
-position.hh
-stack.hh
+src/location.hh
+src/position.hh
+src/stack.hh
 
 czin
