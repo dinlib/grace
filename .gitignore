@@ -61,4 +61,15 @@ bin-release/
 
 # End of https://www.gitignore.io/api/c++,flex
 
+#Vim swp files
+*.swp
+
+#Generated files
+parser.cc
+parser.hh
+
+location.hh
+position.hh
+stack.hh
+
 czin
