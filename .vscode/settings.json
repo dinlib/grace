@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "*.ll": "lex",
+    "__split_buffer": "cpp",
+    "__tree": "cpp",
+    "bitset": "cpp",
+    "initializer_list": "cpp",
+    "map": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "vector": "cpp"
+  }
+}
