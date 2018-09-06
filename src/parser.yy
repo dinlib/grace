@@ -8,6 +8,7 @@
 
 %code requires {
   #include <string>
+  #include "ast.hh"
   class Driver;
 }
 
@@ -26,42 +27,46 @@
 %define api.token.prefix {TOK_}
 %token 
   END 0 "end of file"
-  ASSIGN ":="
+  ASSIGN "="
   MINUS "-"
   PLUS "+"
   STAR "*"
   SLASH "/"
   LPAREN "("
   RPAREN ")"
+  LBRACKET "["
+  RBRACKET "]"
+  LBRACE "{"
+  RBRACE "}"
+  COLON ":"
+  SEMICOLON ";"
+  EQ "=="
+  LT "<"
+  LTEQ "<="
+  GT ">"
+  GTEQ ">="
+
+  VAR "var"
 ;
 
 %token <std::string> IDENTIFIER "identifier"
 %token <int> NUMBER "number"
-%type <int> exp
+%token <bool> BOOL_LITERAL "bool literal"
+
+%type <VarDeclNode*> varDecl
+%type <BlockNode*> varDeclList
 
 %printer { yyoutput << $$; } <*>;
 
+%start program;
 %%
-%start unit;
-unit: assignments exp { drv.result = $2; };
+program: varDeclList END { drv.program = $1; };
 
-assignments:
-  %empty {}
-  | assignments assignment {};
+varDeclList: varDecl { $$ = new BlockNode(); $$->nodes.push_back($1); }
+           | varDeclList varDecl { $1->nodes.push_back($2); $$ = $1; };
 
-assignment:
-  "identifier" ":=" exp { drv.variables[$1] = $3; };
+varDecl: VAR IDENTIFIER LBRACKET NUMBER RBRACKET COLON IDENTIFIER SEMICOLON { $$ = new VarDeclNode($2, $4, $7); };
 
-%left "+" "-";
-%left "*" "/";
-exp:
-  exp "+" exp { $$ = $1 + $3; }
-  | exp "-" exp { $$ = $1 - $3; }
-  | exp "*" exp { $$ = $1 * $3; }
-  | exp "/" exp { $$ = $1 / $3; }
-  | "(" exp ")" { std::swap($$, $2); }
-  | "identifier" { $$ = drv.variables[$1]; }
-  | "number" { std::swap($$, $1); };
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {

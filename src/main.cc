@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     } else if (argv[i] == std::string("-s")) {
       drv.trace_scanning = true;
     } else if (!drv.parse(argv[i])) {
-      std::cout << drv.result << '\n';
+      drv.program->PrintAST();
     } else {
       res = 1;
     }

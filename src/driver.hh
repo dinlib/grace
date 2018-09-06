@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ast.hh"
 #include "parser.hh"
 #include <map>
 #include <string>
@@ -14,7 +15,7 @@ public:
   Driver();
 
   std::map<std::string, int> variables;
-  int result;
+  BlockNode *program;
 
   // Run the parser on file F. Return 0 on success.
   int parse(const std::string &f);

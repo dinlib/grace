@@ -16,7 +16,7 @@
 
 %option noyywrap nounput batch debug noinput
 
-id [a-zA-Z][a-zA-Z_0-9]*
+id [a-zA-Z_][a-zA-Z_0-9]*
 int [0-9]+
 blank [ \t]
 
@@ -37,13 +37,28 @@ loc.step();
 {blank}+ loc.step();
 [\n]+ loc.lines(yyleng); loc.step();
 
+";" return yy::parser::make_SEMICOLON(loc);
+":" return yy::parser::make_COLON(loc);
 "-" return yy::parser::make_MINUS(loc);
 "+" return yy::parser::make_PLUS(loc);
 "*" return yy::parser::make_STAR(loc);
 "/" return yy::parser::make_SLASH(loc);
 "(" return yy::parser::make_LPAREN(loc);
 ")" return yy::parser::make_RPAREN(loc);
-":=" return yy::parser::make_ASSIGN(loc);
+"[" return yy::parser::make_LBRACKET(loc);
+"]" return yy::parser::make_RBRACKET(loc);
+"{" return yy::parser::make_LBRACE(loc);
+"}" return yy::parser::make_RBRACE(loc);
+"=" return yy::parser::make_ASSIGN(loc);
+"==" return yy::parser::make_EQ(loc);
+"<" return yy::parser::make_LT(loc);
+"<=" return yy::parser::make_LTEQ(loc);
+">" return yy::parser::make_GT(loc);
+">=" return yy::parser::make_GTEQ(loc);
+
+"var" return yy::parser::make_VAR(loc);
+"true" return yy::parser::make_BOOL_LITERAL(true, loc);
+"false" return yy::parser::make_BOOL_LITERAL(false, loc);
 
 {int} {
   errno = 0;
