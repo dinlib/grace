@@ -1,5 +1,5 @@
-var v1[10]: int;
-var v2[20]: string;
-var v3[20]: string;
-var v4[20]: string;
-var v5[20]: string;
+var v[10]: int;
+
+def main(): int {
+  var v[10]: int;
+}
