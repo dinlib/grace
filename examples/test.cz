@@ -1,5 +1,6 @@
 var v1[10]: int;
-var v2[20]: string;
-var v3[20]: string;
+var v2[20]: int;
+var v3[10]: string;
 var v4[20]: string;
-var v5[20]: string;
+var v5[10]: bool;
+var v6[20]: bool;
