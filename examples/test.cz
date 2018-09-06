@@ -9,3 +9,4 @@ var v[10]: int;
 
 def main(): int {
   var v[10]: int;
+}
