@@ -1,3 +1,4 @@
+
 # Czin
 
 ## Installing Bison
@@ -20,3 +21,74 @@ cd czin
 make
 ./czin name-of-file.cz
 ```
+## Tasks
+### Program
+- [X] program        
+
+### Variables
+- [ ] decVar          
+- [ ] listSpecVar     
+- [ ] specVar         
+- [ ] UsingVariable   
+
+### Subprogram and Procedures
+- [ ] decSub          
+
+#### Procedure
+- [ ] decProc         
+
+#### Function
+- [ ] decFunc         
+
+#### Parameters
+- [ ] ParamsList      
+- [ ] SpecParams      
+- [ ] param           
+
+### Comands
+- [ ] stmt            
+
+#### Assignment
+- [ ] stmtAtrib       
+- [ ] atrib           
+
+#### If statement
+- [ ] stmtIf          
+
+#### While statement
+- [ ] stmtWhile       
+
+#### For statement
+- [ ] stmtFor         
+
+#### Loop interrupt statement
+- [ ] stmtStop        
+
+#### Loop skip statement
+- [ ] stmtSkip        
+
+#### Return statement
+- [ ] stmtReturn     
+
+#### Procedure Call Statement
+- [ ] stmtCallProc    
+
+#### Read Statement
+- [ ] stmtRead        
+
+#### Write Statement
+- [ ] stmtWrite       
+
+##### Statement Block
+- [ ] block           
+
+### Expression
+- [ ] Negative        
+- [ ] Mult, Div, Mod  
+- [ ] Add, Sub        
+- [ ] MT, MEQT        
+- [ ] LT, LEQT        
+- [ ] EQ, DIFF        
+- [ ] AND              
+- [ ] OR              
+- [ ] Ternary OP      
