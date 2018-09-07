@@ -49,6 +49,23 @@ public:
   }
 };
 
+class VarInitNode : public StmtNode {
+  std::string id;
+  std::string type;
+  std::string value = "uninitialized";
+
+public:
+  VarInitNode(std::string &id, std::string &type) 
+    : id(id), type(type) {}
+
+  virtual void PrintAST() const {
+    std::cout << "variable: " << id << std::endl
+              << "type: " << type << std::endl
+              << "value: " << value << std::endl
+              << std::endl;
+  }
+};
+
 class FuncDeclNode : public StmtNode {
   std::string name;
   std::string returnType;

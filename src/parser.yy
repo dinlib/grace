@@ -45,6 +45,7 @@
   LTEQ "<="
   GT ">"
   GTEQ ">="
+  COMMA ","
 
   VAR "var"
   DEF "def"
@@ -54,7 +55,7 @@
 %token <int> NUMBER "number"
 %token <bool> BOOL_LITERAL "bool literal"
 
-%type <StmtNode*> stmt varDecl funcDecl procDecl
+%type <StmtNode*> stmt initVar varDecl funcDecl procDecl
 %type <BlockNode*> stmts block
 
 %printer { yyoutput << $$; } <*>;
@@ -69,10 +70,13 @@ stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
       | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
       ;
 
-stmt: varDecl { $$ = $1; } 
+stmt: varDecl { $$ = $1; }
+    | initVar { $$ = $1; }
     | funcDecl { $$ = $1; }
     | procDecl { $$ = $1; }
     ;
+
+initVar: VAR IDENTIFIER COLON IDENTIFIER SEMICOLON { $$ = new VarInitNode($2, $4); }
 
 varDecl: VAR IDENTIFIER LBRACKET NUMBER RBRACKET COLON IDENTIFIER SEMICOLON { $$ = new VarDeclNode($2, $4, $7); };
 

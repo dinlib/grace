@@ -55,6 +55,7 @@ loc.step();
 "<=" return yy::parser::make_LTEQ(loc);
 ">" return yy::parser::make_GT(loc);
 ">=" return yy::parser::make_GTEQ(loc);
+"," return yy::parser::make_COMMA(loc);
 
 "def" return yy::parser::make_DEF(loc);
 "var" return yy::parser::make_VAR(loc);
