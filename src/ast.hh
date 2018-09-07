@@ -74,6 +74,8 @@ class FuncDeclNode : public StmtNode {
 public:
   FuncDeclNode(std::string &name, std::string &returnType, BlockNode *block)
       : name(name), returnType(returnType), block(block) {}
+  FuncDeclNode(std::string &name, BlockNode *block)
+      : name(name), returnType("void"), block(block) {}
 
   void PrintAST() const override {
     std::cout << "function: " << name << std::endl

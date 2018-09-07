@@ -81,7 +81,7 @@ initVar: VAR IDENTIFIER COLON IDENTIFIER SEMICOLON { $$ = new VarInitNode($2, $4
 varDecl: VAR IDENTIFIER LBRACKET NUMBER RBRACKET COLON IDENTIFIER SEMICOLON { $$ = new VarDeclNode($2, $4, $7); };
 
 funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON IDENTIFIER block { $$ = new FuncDeclNode($2, $6, $7); };
-procDecl:;
+procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
 
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
