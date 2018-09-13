@@ -46,7 +46,7 @@
   GT ">"
   GTEQ ">="
   COMMA ","
-	QMARK "\""
+  QMARK "\""
 
   VAR "var"
   DEF "def"
@@ -78,7 +78,7 @@ program: stmts { drv.program = $1; }
 
 stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
       | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
-      ;
+;
 
 stmt: varDecl { $$ = $1; }
     | funcDecl { $$ = $1; }
@@ -88,7 +88,7 @@ stmt: varDecl { $$ = $1; }
 varDecl: VAR listaSpecsVar COLON type SEMICOLON {};
 
 listaSpecsVar: specVar {}
-						 | specVar COMMA listaSpecsVar {};
+             | specVar COMMA listaSpecsVar {};
 
 specVar: specVarSimples {}
        | specVarSimplesIni {}
@@ -101,11 +101,11 @@ specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK {}
                  | IDENTIFIER ASSIGN NUMBER {};
 
 stringChain: IDENTIFIER {}
-			| TYPE_INT {}
-			| TYPE_BOOL {}
-			| IDENTIFIER stringChain {}
-			| TYPE_INT stringChain {}
-			| TYPE_BOOL stringChain {}
+	   | TYPE_INT {}
+	   | TYPE_BOOL {}
+	   | IDENTIFIER stringChain {}
+	   | TYPE_INT stringChain {}
+	   | TYPE_BOOL stringChain {}
 
 specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET {};
 
@@ -113,7 +113,7 @@ specVarArranjoIni: {};
 
 type: TYPE_INT {}
     | TYPE_STRING {}
-		| TYPE_BOOL {};
+    | TYPE_BOOL {};
 
 funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON type block { $$ = new FuncDeclNode($2, $6, $7); };
 procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
