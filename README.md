@@ -26,19 +26,16 @@ make
 - [X] program        
 
 ### Variables
-- [ ] decVar          
-- [ ] listSpecVar     
-- [ ] specVar         
+- [X] decVar          
+- [X] listSpecVar     
+- [X] specVar         
 - [ ] UsingVariable   
 
-### Subprogram and Procedures
-- [ ] decSub          
-
 #### Procedure
-- [ ] decProc         
+- [X] decProc         
 
 #### Function
-- [ ] decFunc         
+- [X] decFunc         
 
 #### Parameters
 - [ ] ParamsList      
