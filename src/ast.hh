@@ -17,7 +17,7 @@ public:
 
 class StmtNode : public Node {
 public:
-  void PrintAST() const {}
+  void PrintAST() const override {}
 };
 
 class ExprNode : public Node {};
@@ -26,7 +26,7 @@ class BlockNode : public Node {
 public:
   StmtList stmts;
   BlockNode() {}
-  virtual void PrintAST() const {
+  void PrintAST() const override {
     for (auto &stmt : stmts)
       stmt->PrintAST();
   }
@@ -41,10 +41,27 @@ public:
   VarDeclNode(std::string &id, unsigned size, std::string &type)
       : id(id), size(size), type(type) {}
 
-  virtual void PrintAST() const {
+  void PrintAST() const override {
     std::cout << "variable: " << id << std::endl
               << "size: " << size << std::endl
               << "type: " << type << std::endl
+              << std::endl;
+  }
+};
+
+class VarInitNode : public StmtNode {
+  std::string id;
+  std::string type;
+  std::string value = "uninitialized";
+
+public:
+  VarInitNode(std::string &id, std::string &type) 
+    : id(id), type(type) {}
+
+  void PrintAST() const override {
+    std::cout << "variable: " << id << std::endl
+              << "type: " << type << std::endl
+              << "value: " << value << std::endl
               << std::endl;
   }
 };
@@ -57,8 +74,10 @@ class FuncDeclNode : public StmtNode {
 public:
   FuncDeclNode(std::string &name, std::string &returnType, BlockNode *block)
       : name(name), returnType(returnType), block(block) {}
+  FuncDeclNode(std::string &name, BlockNode *block)
+      : name(name), returnType("void"), block(block) {}
 
-  void PrintAST() const {
+  void PrintAST() const override {
     std::cout << "function: " << name << std::endl
               << "return type: " << returnType << std::endl
               << "block: " << std::endl;

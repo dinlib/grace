@@ -1,5 +1,26 @@
+var v1[10]: int;
+var v2[20]: int;
+var v3[10]: string;
+var v4[20]: string;
+var v5[10]: bool;
+var v6[20]: bool;
+
+var a, b, c: int;
+
+var a = 2: int;
+var b = "Hello World": string;
+
+var nonUnitialized1: int;
+
+var nonU1: string;
+
 var v[10]: int;
 
 def main(): int {
   var v[10]: int;
+}
+
+def proc() {
+  var name: string;
+
 }

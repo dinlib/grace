@@ -45,17 +45,28 @@
   LTEQ "<="
   GT ">"
   GTEQ ">="
+  COMMA ","
+  QMARK "\""
 
   VAR "var"
   DEF "def"
+
 ;
 
 %token <std::string> IDENTIFIER "identifier"
 %token <int> NUMBER "number"
 %token <bool> BOOL_LITERAL "bool literal"
 
-%type <StmtNode*> stmt varDecl funcDecl procDecl
+%token <std::string> TYPE_INT "type_int"
+%token <std::string> TYPE_STRING "type_string"
+%token <std::string> TYPE_BOOL "type_bool"
+
+%type <StmtNode*> stmt funcDecl procDecl
 %type <BlockNode*> stmts block
+
+%type <StmtNode*> varDecl listaSpecsVar specVar
+%type <StmtNode*> specVarSimples specVarSimplesIni
+%type <StmtNode*> specVarArranjo specVarArranjoIni
 
 %printer { yyoutput << $$; } <*>;
 
@@ -67,21 +78,48 @@ program: stmts { drv.program = $1; }
 
 stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
       | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
-      ;
+;
 
-stmt: varDecl { $$ = $1; } 
+stmt: varDecl { $$ = $1; }
     | funcDecl { $$ = $1; }
     | procDecl { $$ = $1; }
     ;
 
-varDecl: VAR IDENTIFIER LBRACKET NUMBER RBRACKET COLON IDENTIFIER SEMICOLON { $$ = new VarDeclNode($2, $4, $7); };
+varDecl: VAR listaSpecsVar COLON type SEMICOLON {};
 
-funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON IDENTIFIER block { $$ = new FuncDeclNode($2, $6, $7); };
-procDecl:;
+listaSpecsVar: specVar {}
+             | specVar COMMA listaSpecsVar {};
+
+specVar: specVarSimples {}
+       | specVarSimplesIni {}
+       | specVarArranjo {}
+       | specVarArranjoIni {};
+
+specVarSimples: IDENTIFIER {};
+
+specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK {}
+                 | IDENTIFIER ASSIGN NUMBER {};
+
+stringChain: IDENTIFIER {}
+	   | TYPE_INT {}
+	   | TYPE_BOOL {}
+	   | IDENTIFIER stringChain {}
+	   | TYPE_INT stringChain {}
+	   | TYPE_BOOL stringChain {}
+
+specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET {};
+
+specVarArranjoIni: {};
+
+type: TYPE_INT {}
+    | TYPE_STRING {}
+    | TYPE_BOOL {};
+
+funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON type block { $$ = new FuncDeclNode($2, $6, $7); };
+procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
 
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
-
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
