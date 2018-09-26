@@ -67,6 +67,7 @@
 %type <StmtNode*> varDecl listaSpecsVar specVar
 %type <StmtNode*> specVarSimples specVarSimplesIni
 %type <StmtNode*> specVarArranjo specVarArranjoIni
+%type <std::string> dataType
 
 %printer { yyoutput << $$; } <*>;
 
@@ -85,7 +86,7 @@ stmt: varDecl { $$ = $1; }
     | procDecl { $$ = $1; }
     ;
 
-varDecl: VAR listaSpecsVar COLON type SEMICOLON {};
+varDecl: VAR listaSpecsVar COLON dataType SEMICOLON {};
 
 listaSpecsVar: specVar {}
              | specVar COMMA listaSpecsVar {};
@@ -111,11 +112,11 @@ specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET {};
 
 specVarArranjoIni: {};
 
-type: TYPE_INT {}
-    | TYPE_STRING {}
-    | TYPE_BOOL {};
+dataType: TYPE_INT { $$ = "type_int"; }
+    | TYPE_STRING { $$ = "type_string"; }
+    | TYPE_BOOL { $$ = "type_bool"; };
 
-funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON type block { $$ = new FuncDeclNode($2, $6, $7); };
+funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON dataType block { $$ = new FuncDeclNode($2, $6, $7); };
 procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
 
 block: LBRACE stmts RBRACE { $$ = $2; }
