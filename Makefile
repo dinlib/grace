@@ -7,7 +7,7 @@ FLEX = flex
 
 SRCDIR = src
 
-all: czin
+all: grace
 
 $(SRCDIR)/%.cc $(SRCDIR)/%.hh: $(SRCDIR)/%.yy
 	$(BISON) $(BISONFLAGS) -o $(SRCDIR)/$*.cc $<
@@ -18,7 +18,7 @@ $(SRCDIR)/%.cc: $(SRCDIR)/%.ll
 $(SRCDIR)/%.o: $(SRCDIR)/%.cc
 	$(CXX) $(CXXFLAGS) -std=c++11 -c -o$@ $<
 
-czin: $(SRCDIR)/main.o $(SRCDIR)/driver.o $(SRCDIR)/parser.o $(SRCDIR)/scanner.o
+grace: $(SRCDIR)/main.o $(SRCDIR)/driver.o $(SRCDIR)/parser.o $(SRCDIR)/scanner.o
 	$(CXX) -o $@ $^
 
 $(SRCDIR)/main.o: $(SRCDIR)/parser.hh
