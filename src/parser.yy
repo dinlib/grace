@@ -10,6 +10,9 @@
   #include <string>
   #include "ast.hh"
   class Driver;
+
+  typedef std::pair<std::string, int> SpecVar
+  typedef std::vector<SpecVar> SpecVarList
 }
 
 // The parsing context.
@@ -68,37 +71,42 @@
 %type <StmtNode*> specVarSimples specVarSimplesIni
 %type <StmtNode*> specVarArranjo specVarArranjoIni
 %type <std::string> dataType
+%type <SpecVarList*> listaSpecsVar
 
 %printer { yyoutput << $$; } <*>;
 
 %start program;
 %%
 
-program: stmts { drv.program = $1; }
+program: stmts                                                  { drv.program = $1; }
        ;
 
-stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
+stmts: stmt                                                     { $$ = new BlockNode(); $$->stmts.push_back($1); }
+      | stmts stmt                                              { $1->stmts.push_back($2); $$ = $1; }
 ;
 
-stmt: varDecl { $$ = $1; }
-    | funcDecl { $$ = $1; }
-    | procDecl { $$ = $1; }
+stmt: varDecl                                                   { $$ = $1; }
+    | funcDecl                                                  { $$ = $1; }
+    | procDecl                                                  { $$ = $1; }
     ;
 
-varDecl: VAR listaSpecsVar COLON dataType SEMICOLON {};
+varDecl: VAR listaSpecsVar COLON dataType SEMICOLON             { $$ = new BlockNode();
+                                                                  for (auto &spec : *$2)
+                                                                    $$->push_back(new VarDeclNode(spec.first, spec.second, $4));
+                                                                  delete $2; 
+                                                                };
 
-listaSpecsVar: specVar {}
-             | specVar COMMA listaSpecsVar {};
+listaSpecsVar: specVar                                          { $$ = new SpecVarList(); $$->push_back($1); }
+             | specVar COMMA listaSpecsVar                      { $3->push_back($1); $$ = $1; };
 
-specVar: specVarSimples {}
-       | specVarSimplesIni {}
-       | specVarArranjo {}
-       | specVarArranjoIni {};
+specVar: specVarSimples                                         { $$ = $1; }
+       | specVarSimplesIni                                      { $$ = $1; }
+       | specVarArranjo                                         { $$ = $1; }
+       | specVarArranjoIni                                      { $$ = $1; };
 
-specVarSimples: IDENTIFIER {};
+specVarSimples: IDENTIFIER                                      { $$ = make_pair($1, 0); };
 
-specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK {}
+specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK    {}
                  | IDENTIFIER ASSIGN NUMBER {};
 
 stringChain: IDENTIFIER {}
@@ -106,21 +114,21 @@ stringChain: IDENTIFIER {}
 	   | TYPE_BOOL {}
 	   | IDENTIFIER stringChain {}
 	   | TYPE_INT stringChain {}
-	   | TYPE_BOOL stringChain {}
+	   | TYPE_BOOL stringChain {};
 
-specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET {};
+specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = make_pair($1, $3); };
 
 specVarArranjoIni: {};
 
-dataType: TYPE_INT { $$ = "type_int"; }
-    | TYPE_STRING { $$ = "type_string"; }
-    | TYPE_BOOL { $$ = "type_bool"; };
+dataType: TYPE_INT                                              { $$ = "type_int"; }
+    | TYPE_STRING                                               { $$ = "type_string"; }
+    | TYPE_BOOL                                                 { $$ = "type_bool"; };
 
-funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON dataType block { $$ = new FuncDeclNode($2, $6, $7); };
-procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
+funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON dataType block     { $$ = new FuncDeclNode($2, $6, $7); };
+procDecl: DEF IDENTIFIER LPAREN RPAREN block                    { $$ = new FuncDeclNode($2, $5); };
 
-block: LBRACE stmts RBRACE { $$ = $2; }
-     | LBRACE RBRACE { $$ = new BlockNode(); };
+block: LBRACE stmts RBRACE                                      { $$ = $2; }
+     | LBRACE RBRACE                                            { $$ = new BlockNode(); };
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
