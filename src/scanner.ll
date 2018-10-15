@@ -37,6 +37,8 @@ loc.step();
 {blank}+ loc.step();
 [\n]+ loc.lines(yyleng); loc.step();
 
+"\".*\"" return yy::parser::make_STRING_LITERAL(loc);
+
 ";" return yy::parser::make_SEMICOLON(loc);
 ":" return yy::parser::make_COLON(loc);
 "-" return yy::parser::make_MINUS(loc);

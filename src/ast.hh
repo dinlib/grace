@@ -5,8 +5,10 @@
 #include <vector>
 
 class StmtNode;
+class VarDeclNode;
 
 typedef std::vector<StmtNode *> StmtList;
+typedef std::vector<VarDeclNode *> VarDeclNodeList;
 
 class Node {
 public:
@@ -32,21 +34,51 @@ public:
   }
 };
 
-class VarDeclNode : public StmtNode {
+class AssignNode : public StmtNode {};
+
+class StringAssignNode : public AssignNode {
+  std::string str;
+
+public:
+  StringAssignNode(std::string str) : str(str) {}
+};
+
+class NumberAssignNode : public AssignNode {};
+
+class ArrayAssignNode : public AssignNode {};
+
+class SpecVar {
   std::string id;
   unsigned size;
+  AssignNode *assign;
+
+public:
+  SpecVar(std::string id, unsigned size, AssignNode *assign)
+      : id(id), size(size), assign(assign) {}
+};
+
+typedef std::vector<SpecVar *> SpecVarList;
+
+class VarDeclNode : public StmtNode {
+  SpecVar *spec;
   std::string type;
 
 public:
-  VarDeclNode(std::string &id, unsigned size, std::string &type)
-      : id(id), size(size), type(type) {}
+  VarDeclNode(SpecVar *spec, std::string type) : spec(spec), type(type) {}
 
   void PrintAST() const override {
-    std::cout << "variable: " << id << std::endl
-              << "size: " << size << std::endl
-              << "type: " << type << std::endl
-              << std::endl;
+    // std::cout << "variable: " << id << std::endl
+    //           << "size: " << size << std::endl
+    //           << "type: " << type << std::endl
+    //           << std::endl;
   }
+};
+
+class VarDeclNodeListStmt : public StmtNode {
+  VarDeclNodeList varDeclList;
+
+public:
+  VarDeclNodeListStmt(VarDeclNodeList list) : varDeclList(list) {}
 };
 
 class VarInitNode : public StmtNode {
@@ -55,8 +87,7 @@ class VarInitNode : public StmtNode {
   std::string value = "uninitialized";
 
 public:
-  VarInitNode(std::string &id, std::string &type) 
-    : id(id), type(type) {}
+  VarInitNode(std::string &id, std::string &type) : id(id), type(type) {}
 
   void PrintAST() const override {
     std::cout << "variable: " << id << std::endl

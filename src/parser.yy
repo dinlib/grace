@@ -10,9 +10,6 @@
   #include <string>
   #include "ast.hh"
   class Driver;
-
-  typedef std::pair<std::string, int> SpecVar
-  typedef std::vector<SpecVar> SpecVarList
 }
 
 // The parsing context.
@@ -63,15 +60,15 @@
 %token <std::string> TYPE_INT "type_int"
 %token <std::string> TYPE_STRING "type_string"
 %token <std::string> TYPE_BOOL "type_bool"
+%token <std::string> STRING_LITERAL
 
 %type <StmtNode*> stmt funcDecl procDecl
 %type <BlockNode*> stmts block
 
-%type <StmtNode*> varDecl listaSpecsVar specVar
-%type <StmtNode*> specVarSimples specVarSimplesIni
-%type <StmtNode*> specVarArranjo specVarArranjoIni
+%type <VarDeclNodeList *> varDecl
 %type <std::string> dataType
-%type <SpecVarList*> listaSpecsVar
+%type <SpecVar *> specVar specVarSimples specVarArranjo specVarSimplesIni specVarArranjoIni
+%type <SpecVarList *> listaSpecsVar
 
 %printer { yyoutput << $$; } <*>;
 
@@ -83,40 +80,38 @@ program: stmts                                                  { drv.program = 
 
 stmts: stmt                                                     { $$ = new BlockNode(); $$->stmts.push_back($1); }
       | stmts stmt                                              { $1->stmts.push_back($2); $$ = $1; }
-;
+      ;
 
 stmt: varDecl                                                   { $$ = $1; }
     | funcDecl                                                  { $$ = $1; }
     | procDecl                                                  { $$ = $1; }
     ;
 
-varDecl: VAR listaSpecsVar COLON dataType SEMICOLON             { $$ = new BlockNode();
-                                                                  for (auto &spec : *$2)
-                                                                    $$->push_back(new VarDeclNode(spec.first, spec.second, $4));
-                                                                  delete $2; 
-                                                                };
+varDecl: VAR listaSpecsVar COLON dataType SEMICOLON             { $$ = new VarDeclNodeList();
+                                                                  for (auto spec : *$2)
+                                                                    $$->push_back(new VarDeclNode(spec, $4));
+                                                                }
+       ;
 
 listaSpecsVar: specVar                                          { $$ = new SpecVarList(); $$->push_back($1); }
-             | specVar COMMA listaSpecsVar                      { $3->push_back($1); $$ = $1; };
+             | specVar COMMA listaSpecsVar                      { $3->push_back($1); $$ = $1; }
+             ;
 
 specVar: specVarSimples                                         { $$ = $1; }
        | specVarSimplesIni                                      { $$ = $1; }
        | specVarArranjo                                         { $$ = $1; }
-       | specVarArranjoIni                                      { $$ = $1; };
+       | specVarArranjoIni                                      { $$ = $1; }
+       ;
 
-specVarSimples: IDENTIFIER                                      { $$ = make_pair($1, 0); };
+specVarSimples: IDENTIFIER                                      { $$ = new SpecVar($1, 0, NULL); }
+              ;
 
-specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK    {}
-                 | IDENTIFIER ASSIGN NUMBER {};
+specVarSimplesIni: IDENTIFIER ASSIGN STRING_LITERAL             { $$ = new SpecVar($1, 0, new StringAssignNode($3)); }
+                 | IDENTIFIER ASSIGN NUMBER                     { $$ = new SpecVar($1, 0, new NumberAssignNode($3)); }
+                 ;
 
-stringChain: IDENTIFIER {}
-	   | TYPE_INT {}
-	   | TYPE_BOOL {}
-	   | IDENTIFIER stringChain {}
-	   | TYPE_INT stringChain {}
-	   | TYPE_BOOL stringChain {};
-
-specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = make_pair($1, $3); };
+specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = new SpecVar($1, $3, NULL); }
+              ;
 
 specVarArranjoIni: {};
 
