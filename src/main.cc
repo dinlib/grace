@@ -9,8 +9,11 @@ int main(int argc, char **argv) {
       drv.trace_parsing = true;
     } else if (argv[i] == std::string("-s")) {
       drv.trace_scanning = true;
+    } else if (argv[i] == std::string("--dump-ast")) {
+      drv.dump_ast = true;
     } else if (!drv.parse(argv[i])) {
-      drv.program->PrintAST();
+      if (drv.dump_ast)
+        drv.program->DumpAST(0);
     } else {
       res = 1;
     }

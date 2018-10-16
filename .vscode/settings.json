@@ -8,6 +8,10 @@
     "map": "cpp",
     "string": "cpp",
     "string_view": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "__functional_03": "cpp",
+    "__string": "cpp",
+    "functional": "cpp",
+    "system_error": "cpp"
   }
 }

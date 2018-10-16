@@ -33,6 +33,8 @@ public:
   // Whether to generate scanner debug traces.
   bool trace_scanning;
 
+  bool dump_ast;
+
   // The token's location used by the scanner.
   yy::location location;
 };

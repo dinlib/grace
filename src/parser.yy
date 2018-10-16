@@ -25,7 +25,7 @@
 }
 
 %define api.token.prefix {TOK_}
-%token 
+%token
   END 0 "end of file"
   ASSIGN "="
   MINUS "-"
@@ -65,7 +65,7 @@
 %type <StmtNode*> stmt funcDecl procDecl
 %type <BlockNode*> stmts block
 
-%type <VarDeclNodeList *> varDecl
+%type <VarDeclNodeListStmt *> varDecl
 %type <std::string> dataType
 %type <SpecVar *> specVar specVarSimples specVarArranjo specVarSimplesIni specVarArranjoIni
 %type <SpecVarList *> listaSpecsVar
@@ -87,14 +87,14 @@ stmt: varDecl                                                   { $$ = $1; }
     | procDecl                                                  { $$ = $1; }
     ;
 
-varDecl: VAR listaSpecsVar COLON dataType SEMICOLON             { $$ = new VarDeclNodeList();
+varDecl: VAR listaSpecsVar COLON dataType SEMICOLON             { $$ = new VarDeclNodeListStmt();
                                                                   for (auto spec : *$2)
-                                                                    $$->push_back(new VarDeclNode(spec, $4));
+                                                                    $$->varDeclList.push_back(new VarDeclNode(spec, $4));
                                                                 }
        ;
 
 listaSpecsVar: specVar                                          { $$ = new SpecVarList(); $$->push_back($1); }
-             | specVar COMMA listaSpecsVar                      { $3->push_back($1); $$ = $1; }
+             | specVar COMMA listaSpecsVar                      { $3->push_back($1); $$ = $3; }
              ;
 
 specVar: specVarSimples                                         { $$ = $1; }
@@ -106,8 +106,8 @@ specVar: specVarSimples                                         { $$ = $1; }
 specVarSimples: IDENTIFIER                                      { $$ = new SpecVar($1, 0, NULL); }
               ;
 
-specVarSimplesIni: IDENTIFIER ASSIGN STRING_LITERAL             { $$ = new SpecVar($1, 0, new StringAssignNode($3)); }
-                 | IDENTIFIER ASSIGN NUMBER                     { $$ = new SpecVar($1, 0, new NumberAssignNode($3)); }
+specVarSimplesIni: IDENTIFIER ASSIGN STRING_LITERAL             { $$ = new SpecVar($1, 0, new StringAssignNode($1, $3)); }
+                 | IDENTIFIER ASSIGN NUMBER                     { $$ = new SpecVar($1, 0, new NumberAssignNode($1, $3)); }
                  ;
 
 specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = new SpecVar($1, $3, NULL); }

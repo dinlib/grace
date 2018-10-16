@@ -8,7 +8,7 @@
       "name": "(lldb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/czin",
+      "program": "${workspaceFolder}/grace",
       "args": ["examples/test.cz"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

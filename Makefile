@@ -16,7 +16,7 @@ $(SRCDIR)/%.cc: $(SRCDIR)/%.ll
 	$(FLEX) $(FLEXFLAGS) -o$@ $<
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.cc
-	$(CXX) $(CXXFLAGS) -std=c++11 -c -o$@ $<
+	$(CXX) $(CXXFLAGS) -std=c++11 -c -g -o$@ $<
 
 grace: $(SRCDIR)/main.o $(SRCDIR)/driver.o $(SRCDIR)/parser.o $(SRCDIR)/scanner.o
 	$(CXX) -o $@ $^
