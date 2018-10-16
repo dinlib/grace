@@ -86,19 +86,23 @@ public:
 typedef vector<SpecVar *> SpecVarList;
 
 class VarDeclNode : public StmtNode {
-  SpecVar *spec;
+  string id;
+  unsigned size;
+  AssignNode *assign;
   string type;
 
 public:
-  VarDeclNode(SpecVar *spec, const string &type) : spec(spec), type(type) {}
+  VarDeclNode(const string &id, unsigned size, AssignNode *assign,
+              const string &type)
+      : id(id), size(size), assign(assign), type(type) {}
 
   void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(varDecl id: " << spec->id
-         << "; size: " << spec->size << "; type: " << spec->size;
+    cout << NestedLevel(level) << "(varDecl id: " << id
+         << "; size: " << size << "; type: " << type;
 
-    if (spec->assign) {
+    if (assign) {
       cout << endl;
-      spec->assign->DumpAST(level + 1);
+      assign->DumpAST(level + 1);
       cout << NestedLevel(level);
     }
 

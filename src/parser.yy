@@ -88,9 +88,14 @@ stmt: var_decl                                                   { $$ = $1; }
     ;
 
 var_decl: VAR spec_var_list COLON data_type SEMICOLON             { $$ = new VarDeclNodeListStmt();
-                                                                  for (auto spec : *$2)
-                                                                    $$->varDeclList.push_back(new VarDeclNode(spec, $4));
-                                                                }
+                                                                    for (auto spec : *$2) {
+                                                                      $$->varDeclList.push_back(
+                                                                        new VarDeclNode(spec->id, spec->size, spec->assign, $4)
+                                                                      );
+                                                                      delete spec;
+                                                                    }
+                                                                    delete $2;
+                                                                  }
        ;
 
 spec_var_list: spec_var                                          { $$ = new SpecVarList(); $$->push_back($1); }
