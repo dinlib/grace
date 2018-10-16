@@ -113,11 +113,12 @@ specVarSimplesIni: IDENTIFIER ASSIGN STRING_LITERAL             { $$ = new SpecV
 specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = new SpecVar($1, $3, NULL); }
               ;
 
-specVarArranjoIni: {};
+specVarArranjoIni:                                              {};
 
 dataType: TYPE_INT                                              { $$ = "type_int"; }
     | TYPE_STRING                                               { $$ = "type_string"; }
-    | TYPE_BOOL                                                 { $$ = "type_bool"; };
+    | TYPE_BOOL                                                 { $$ = "type_bool"; }
+    ;
 
 funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON dataType block     { $$ = new FuncDeclNode($2, $6, $7); };
 procDecl: DEF IDENTIFIER LPAREN RPAREN block                    { $$ = new FuncDeclNode($2, $5); };
