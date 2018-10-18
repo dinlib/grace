@@ -15,6 +15,7 @@ var nonUnitialized1: int;
 var nonU1: string;
 
 var v[10]: int;
+var x[2] = {5, true}: int;
 
 def main(): int {
   var v[10]: int;

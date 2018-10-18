@@ -24,7 +24,7 @@ typedef vector<VarDeclNode *> VarDeclNodeList;
 class Node {
 public:
   virtual ~Node() = default;
-  virtual void DumpAST(unsigned level) const = 0;
+  virtual void DumpAST(unsigned level) const {}
 };
 
 class StmtNode : public Node {};
@@ -72,8 +72,14 @@ public:
 class AssignNode : public StmtNode {
 public:
   string id;
+  AssignNode(const string &id) : id(id) {}
+};
+
+class AssignSimpleNode : public AssignNode {
+public:
   ExprNode *expr;
-  AssignNode(const string &id, ExprNode *expr) : id(id), expr(expr) {}
+  AssignSimpleNode(const string &id, ExprNode *expr)
+      : AssignNode(id), expr(expr) {}
 
   void DumpAST(unsigned level) const override {
     cout << NestedLevel(level) << "(assign id: " << id << "; value: " << endl;
@@ -82,19 +88,55 @@ public:
   }
 };
 
-// class NumberAssignNode : public AssignNode {
-// public:
-//   int number;
-//   NumberAssignNode(const string &id, int number)
-//       : AssignNode(id), number(number) {}
-//   void DumpAST(unsigned level) const override {
-//     cout << NestedLevel(level) << "(assign id: " << id << "; value: " <<
-//     number
-//          << ")" << endl;
-//   }
-// };
+class LiteralNode : public ExprNode {};
 
-class ArrayAssignNode : public AssignNode {};
+class ArrayAssignNode : public AssignNode {
+public:
+  vector<LiteralNode *> *literalList;
+  ArrayAssignNode(const string &id, vector<LiteralNode *> *literalList)
+      : AssignNode(id), literalList(literalList) {}
+
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(assign id: " << id << "; value: " << endl
+         << NestedLevel(level + 1) << "[" << endl;
+
+    for (auto lit : *literalList) {
+      lit->DumpAST(level + 2);
+      cout << "," << endl;
+    }
+
+    cout << NestedLevel(level + 1) << "]" << endl;
+  }
+};
+
+class LiteralIntNode : public LiteralNode {
+public:
+  int value;
+  LiteralIntNode(int value) : value(value) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(literal value: " << value << ")";
+  }
+};
+
+class LiteralStringNode : public LiteralNode {
+public:
+  string str;
+  LiteralStringNode(const string &str) : str(str) {}
+
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(literal value: " << str << ")";
+  }
+};
+
+class LiteralBoolNode : public LiteralNode {
+public:
+  bool b;
+  LiteralBoolNode(bool b) : b(b) {}
+
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(literal value: " << boolalpha << b << ")";
+  }
+};
 
 class SpecVar {
 public:

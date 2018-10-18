@@ -50,6 +50,8 @@
 
   VAR "var"
   DEF "def"
+  TRUE "true"
+  FALSE "false"
 
 ;
 
@@ -70,6 +72,8 @@
 %type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
 %type <SpecVarList *> spec_var_list
 %type <ExprNode *> expr
+%type <LiteralNode *> literal
+%type <std::vector<LiteralNode *> *> literal_list
 
 %printer { yyoutput << $$; } <*>;
 
@@ -112,13 +116,21 @@ spec_var: spec_var_simple                                         { $$ = $1; }
 spec_var_simple: IDENTIFIER                                       { $$ = new SpecVar($1, 0, NULL); }
               ;
 
-spec_var_simple_init: IDENTIFIER ASSIGN expr                      { $$ = new SpecVar($1, 0, new AssignNode($1, $3)); }
+spec_var_simple_init: IDENTIFIER ASSIGN expr                      { $$ = new SpecVar($1, 0, new AssignSimpleNode($1, $3)); }
                     ;
 
 spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET               { $$ = new SpecVar($1, $3, NULL); }
               ;
 
-spec_var_array_init:                                              {};
+spec_var_array_init: IDENTIFIER LBRACKET NUMBER RBRACKET ASSIGN LBRACE literal_list RBRACE                                               { $$ = new SpecVar($1, $3, new ArrayAssignNode($1, $7)); };
+
+literal_list: literal                    { $$ = new std::vector<LiteralNode *>(); $$->push_back($1); } 
+            | literal COMMA literal_list { $3->push_back($1); $$ = $3; }
+            ;
+
+literal: STRING_LITERAL { $$ = new LiteralStringNode($1); }
+       | NUMBER { $$ = new LiteralIntNode($1); }
+       | BOOL_LITERAL { $$ = new LiteralBoolNode($1); };
 
 data_type: TYPE_INT                                               { $$ = "type_int"; }
     | TYPE_STRING                                                 { $$ = "type_string"; }
@@ -132,7 +144,7 @@ block: LBRACE stmts RBRACE                                        { $$ = $2; }
      | LBRACE RBRACE                                              { $$ = new BlockNode(); };
 
 expr: STRING_LITERAL											                        { $$ = new StringExprNode($1); }
-	| IDENTIFIER                                                    { $$ = new IdentifierExprNode($1); }
+	  | IDENTIFIER                                                  { $$ = new IdentifierExprNode($1); }
     | NUMBER                                                      { $$ = new NumberExprNode($1); }
     ;
 %%
