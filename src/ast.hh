@@ -30,6 +30,33 @@ public:
 class StmtNode : public Node {};
 class ExprNode : public Node {};
 
+class StringExprNode : public ExprNode {
+public:
+  string str;
+  StringExprNode(const string &str) : str(str) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << str << ")" << endl;
+  }
+};
+
+class IdentifierExprNode : public ExprNode {
+public:
+  string id;
+  IdentifierExprNode(const string &id) : id(id) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << id << ")" << endl;
+  }
+};
+
+class NumberExprNode : public ExprNode {
+public:
+  int value;
+  NumberExprNode(int value) : value(value) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << value << ")" << endl;
+  }
+};
+
 class BlockNode : public Node {
 public:
   StmtList stmts;
@@ -45,31 +72,27 @@ public:
 class AssignNode : public StmtNode {
 public:
   string id;
-  AssignNode(const string &id) : id(id) {}
-};
-
-class StringAssignNode : public AssignNode {
-public:
-  string str;
-  StringAssignNode(const string &id, const string &str)
-      : AssignNode(id), str(str) {}
+  ExprNode *expr;
+  AssignNode(const string &id, ExprNode *expr) : id(id), expr(expr) {}
 
   void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(assign id: " << id << "; value: " << str
-         << ")" << endl;
+    cout << NestedLevel(level) << "(assign id: " << id << "; value: " << endl;
+    expr->DumpAST(level + 1);
+    cout << NestedLevel(level) << ")" << endl;
   }
 };
 
-class NumberAssignNode : public AssignNode {
-public:
-  int number;
-  NumberAssignNode(const string &id, int number)
-      : AssignNode(id), number(number) {}
-  void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(assign id: " << id << "; value: " << number
-         << ")" << endl;
-  }
-};
+// class NumberAssignNode : public AssignNode {
+// public:
+//   int number;
+//   NumberAssignNode(const string &id, int number)
+//       : AssignNode(id), number(number) {}
+//   void DumpAST(unsigned level) const override {
+//     cout << NestedLevel(level) << "(assign id: " << id << "; value: " <<
+//     number
+//          << ")" << endl;
+//   }
+// };
 
 class ArrayAssignNode : public AssignNode {};
 
@@ -97,8 +120,8 @@ public:
       : id(id), size(size), assign(assign), type(type) {}
 
   void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(varDecl id: " << id
-         << "; size: " << size << "; type: " << type;
+    cout << NestedLevel(level) << "(varDecl id: " << id << "; size: " << size
+         << "; type: " << type;
 
     if (assign) {
       cout << endl;

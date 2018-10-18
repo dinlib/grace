@@ -69,22 +69,23 @@
 %type <std::string> data_type
 %type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
 %type <SpecVarList *> spec_var_list
+%type <ExprNode *> expr
 
 %printer { yyoutput << $$; } <*>;
 
 %start program;
 %%
 
-program: stmts                                                  { drv.program = $1; }
+program: stmts                                                    { drv.program = $1; }
        ;
 
-stmts: stmt                                                     { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt                                              { $1->stmts.push_back($2); $$ = $1; }
+stmts: stmt                                                       { $$ = new BlockNode(); $$->stmts.push_back($1); }
+      | stmts stmt                                                { $1->stmts.push_back($2); $$ = $1; }
       ;
 
-stmt: var_decl                                                   { $$ = $1; }
-    | func_decl                                                  { $$ = $1; }
-    | proc_decl                                                  { $$ = $1; }
+stmt: var_decl                                                    { $$ = $1; }
+    | func_decl                                                   { $$ = $1; }
+    | proc_decl                                                   { $$ = $1; }
     ;
 
 var_decl: VAR spec_var_list COLON data_type SEMICOLON             { $$ = new VarDeclNodeListStmt();
@@ -98,38 +99,42 @@ var_decl: VAR spec_var_list COLON data_type SEMICOLON             { $$ = new Var
                                                                   }
        ;
 
-spec_var_list: spec_var                                          { $$ = new SpecVarList(); $$->push_back($1); }
-             | spec_var COMMA spec_var_list                      { $3->push_back($1); $$ = $3; }
+spec_var_list: spec_var                                           { $$ = new SpecVarList(); $$->push_back($1); }
+             | spec_var COMMA spec_var_list                       { $3->push_back($1); $$ = $3; }
              ;
 
 spec_var: spec_var_simple                                         { $$ = $1; }
-       | spec_var_simple_init                                      { $$ = $1; }
-       | spec_var_array                                         { $$ = $1; }
+       | spec_var_simple_init                                     { $$ = $1; }
+       | spec_var_array                                           { $$ = $1; }
        | spec_var_array_init                                      { $$ = $1; }
        ;
 
-spec_var_simple: IDENTIFIER                                      { $$ = new SpecVar($1, 0, NULL); }
+spec_var_simple: IDENTIFIER                                       { $$ = new SpecVar($1, 0, NULL); }
               ;
 
-spec_var_simple_init: IDENTIFIER ASSIGN STRING_LITERAL             { $$ = new SpecVar($1, 0, new StringAssignNode($1, $3)); }
-                 | IDENTIFIER ASSIGN NUMBER                     { $$ = new SpecVar($1, 0, new NumberAssignNode($1, $3)); }
-                 ;
+spec_var_simple_init: IDENTIFIER ASSIGN expr                      { $$ = new SpecVar($1, 0, new AssignNode($1, $3)); }
+                    ;
 
-spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET             { $$ = new SpecVar($1, $3, NULL); }
+spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET               { $$ = new SpecVar($1, $3, NULL); }
               ;
 
 spec_var_array_init:                                              {};
 
-data_type: TYPE_INT                                              { $$ = "type_int"; }
-    | TYPE_STRING                                               { $$ = "type_string"; }
-    | TYPE_BOOL                                                 { $$ = "type_bool"; }
+data_type: TYPE_INT                                               { $$ = "type_int"; }
+    | TYPE_STRING                                                 { $$ = "type_string"; }
+    | TYPE_BOOL                                                   { $$ = "type_bool"; }
     ;
 
 func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block     { $$ = new FuncDeclNode($2, $6, $7); };
-proc_decl: DEF IDENTIFIER LPAREN RPAREN block                    { $$ = new FuncDeclNode($2, $5); };
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block                     { $$ = new FuncDeclNode($2, $5); };
 
-block: LBRACE stmts RBRACE                                      { $$ = $2; }
-     | LBRACE RBRACE                                            { $$ = new BlockNode(); };
+block: LBRACE stmts RBRACE                                        { $$ = $2; }
+     | LBRACE RBRACE                                              { $$ = new BlockNode(); };
+
+expr: STRING_LITERAL											                        { $$ = new StringExprNode($1); }
+	| IDENTIFIER                                                    { $$ = new IdentifierExprNode($1); }
+    | NUMBER                                                      { $$ = new NumberExprNode($1); }
+    ;
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
