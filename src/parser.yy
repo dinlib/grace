@@ -25,7 +25,7 @@
 }
 
 %define api.token.prefix {TOK_}
-%token 
+%token
   END 0 "end of file"
   ASSIGN "="
   MINUS "-"
@@ -60,67 +60,81 @@
 %token <std::string> TYPE_INT "type_int"
 %token <std::string> TYPE_STRING "type_string"
 %token <std::string> TYPE_BOOL "type_bool"
+%token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt funcDecl procDecl
+%type <StmtNode*> stmt func_decl proc_decl
 %type <BlockNode*> stmts block
 
-%type <StmtNode*> varDecl listaSpecsVar specVar
-%type <StmtNode*> specVarSimples specVarSimplesIni
-%type <StmtNode*> specVarArranjo specVarArranjoIni
-%type <std::string> dataType
+%type <VarDeclNodeListStmt *> var_decl
+%type <std::string> data_type
+%type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
+%type <SpecVarList *> spec_var_list
+%type <ExprNode *> expr
 
 %printer { yyoutput << $$; } <*>;
 
 %start program;
 %%
 
-program: stmts { drv.program = $1; }
+program: stmts                                                    { drv.program = $1; }
        ;
 
-stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
-;
+stmts: stmt                                                       { $$ = new BlockNode(); $$->stmts.push_back($1); }
+      | stmts stmt                                                { $1->stmts.push_back($2); $$ = $1; }
+      ;
 
-stmt: varDecl { $$ = $1; }
-    | funcDecl { $$ = $1; }
-    | procDecl { $$ = $1; }
+stmt: var_decl                                                    { $$ = $1; }
+    | func_decl                                                   { $$ = $1; }
+    | proc_decl                                                   { $$ = $1; }
     ;
 
-varDecl: VAR listaSpecsVar COLON dataType SEMICOLON {};
+var_decl: VAR spec_var_list COLON data_type SEMICOLON             { $$ = new VarDeclNodeListStmt();
+                                                                    for (auto spec : *$2) {
+                                                                      $$->varDeclList.push_back(
+                                                                        new VarDeclNode(spec->id, spec->size, spec->assign, $4)
+                                                                      );
+                                                                      delete spec;
+                                                                    }
+                                                                    delete $2;
+                                                                  }
+       ;
 
-listaSpecsVar: specVar {}
-             | specVar COMMA listaSpecsVar {};
+spec_var_list: spec_var                                           { $$ = new SpecVarList(); $$->push_back($1); }
+             | spec_var COMMA spec_var_list                       { $3->push_back($1); $$ = $3; }
+             ;
 
-specVar: specVarSimples {}
-       | specVarSimplesIni {}
-       | specVarArranjo {}
-       | specVarArranjoIni {};
+spec_var: spec_var_simple                                         { $$ = $1; }
+       | spec_var_simple_init                                     { $$ = $1; }
+       | spec_var_array                                           { $$ = $1; }
+       | spec_var_array_init                                      { $$ = $1; }
+       ;
 
-specVarSimples: IDENTIFIER {};
+spec_var_simple: IDENTIFIER                                       { $$ = new SpecVar($1, 0, NULL); }
+              ;
 
-specVarSimplesIni: IDENTIFIER ASSIGN QMARK stringChain QMARK {}
-                 | IDENTIFIER ASSIGN NUMBER {};
+spec_var_simple_init: IDENTIFIER ASSIGN expr                      { $$ = new SpecVar($1, 0, new AssignNode($1, $3)); }
+                    ;
 
-stringChain: IDENTIFIER {}
-	   | TYPE_INT {}
-	   | TYPE_BOOL {}
-	   | IDENTIFIER stringChain {}
-	   | TYPE_INT stringChain {}
-	   | TYPE_BOOL stringChain {}
+spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET               { $$ = new SpecVar($1, $3, NULL); }
+              ;
 
-specVarArranjo: IDENTIFIER LBRACKET NUMBER RBRACKET {};
+spec_var_array_init:                                              {};
 
-specVarArranjoIni: {};
+data_type: TYPE_INT                                               { $$ = "type_int"; }
+    | TYPE_STRING                                                 { $$ = "type_string"; }
+    | TYPE_BOOL                                                   { $$ = "type_bool"; }
+    ;
 
-dataType: TYPE_INT { $$ = "type_int"; }
-    | TYPE_STRING { $$ = "type_string"; }
-    | TYPE_BOOL { $$ = "type_bool"; };
+func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block     { $$ = new FuncDeclNode($2, $6, $7); };
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block                     { $$ = new FuncDeclNode($2, $5); };
 
-funcDecl: DEF IDENTIFIER LPAREN RPAREN COLON dataType block { $$ = new FuncDeclNode($2, $6, $7); };
-procDecl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
+block: LBRACE stmts RBRACE                                        { $$ = $2; }
+     | LBRACE RBRACE                                              { $$ = new BlockNode(); };
 
-block: LBRACE stmts RBRACE { $$ = $2; }
-     | LBRACE RBRACE { $$ = new BlockNode(); };
+expr: STRING_LITERAL											                        { $$ = new StringExprNode($1); }
+	| IDENTIFIER                                                    { $$ = new IdentifierExprNode($1); }
+    | NUMBER                                                      { $$ = new NumberExprNode($1); }
+    ;
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {

@@ -37,6 +37,8 @@ loc.step();
 {blank}+ loc.step();
 [\n]+ loc.lines(yyleng); loc.step();
 
+\"([^\\\"]|\\.)*\" return yy::parser::make_STRING_LITERAL(yytext, loc);
+
 ";" return yy::parser::make_SEMICOLON(loc);
 ":" return yy::parser::make_COLON(loc);
 "-" return yy::parser::make_MINUS(loc);
@@ -75,10 +77,10 @@ loc.step();
     return yy::parser::make_NUMBER(n, loc);
 }
 {id} return yy::parser::make_IDENTIFIER(yytext, loc);
+<<EOF>> return yy::parser::make_END(loc);
 . {
   throw yy::parser::syntax_error (loc, "invalid character: " + std::string(yytext));
 }
-<<EOF>> return yy::parser::make_END(loc);
 %%
 
 void Driver::scan_begin() {

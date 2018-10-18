@@ -4,86 +4,175 @@
 #include <string>
 #include <vector>
 
-class StmtNode;
+#include <assert.h>
 
-typedef std::vector<StmtNode *> StmtList;
+using namespace std;
+
+static string NestedLevel(unsigned level) {
+  string str;
+  for (unsigned i = 0; i < level * 4; i++)
+    str += " ";
+  return str;
+}
+
+class StmtNode;
+class VarDeclNode;
+
+typedef vector<StmtNode *> StmtList;
+typedef vector<VarDeclNode *> VarDeclNodeList;
 
 class Node {
 public:
-  Node() {}
-  virtual ~Node() {}
-  virtual void PrintAST() const {}
+  virtual ~Node() = default;
+  virtual void DumpAST(unsigned level) const = 0;
 };
 
-class StmtNode : public Node {
-public:
-  void PrintAST() const override {}
-};
-
+class StmtNode : public Node {};
 class ExprNode : public Node {};
+
+class StringExprNode : public ExprNode {
+public:
+  string str;
+  StringExprNode(const string &str) : str(str) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << str << ")" << endl;
+  }
+};
+
+class IdentifierExprNode : public ExprNode {
+public:
+  string id;
+  IdentifierExprNode(const string &id) : id(id) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << id << ")" << endl;
+  }
+};
+
+class NumberExprNode : public ExprNode {
+public:
+  int value;
+  NumberExprNode(int value) : value(value) {}
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(expr value: " << value << ")" << endl;
+  }
+};
 
 class BlockNode : public Node {
 public:
   StmtList stmts;
-  BlockNode() {}
-  void PrintAST() const override {
-    for (auto &stmt : stmts)
-      stmt->PrintAST();
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(block" << endl;
+    for (auto stmt : stmts) {
+      stmt->DumpAST(level + 1);
+    }
+    cout << NestedLevel(level) << ")" << endl;
   }
 };
 
-class VarDeclNode : public StmtNode {
-  std::string id;
+class AssignNode : public StmtNode {
+public:
+  string id;
+  ExprNode *expr;
+  AssignNode(const string &id, ExprNode *expr) : id(id), expr(expr) {}
+
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(assign id: " << id << "; value: " << endl;
+    expr->DumpAST(level + 1);
+    cout << NestedLevel(level) << ")" << endl;
+  }
+};
+
+// class NumberAssignNode : public AssignNode {
+// public:
+//   int number;
+//   NumberAssignNode(const string &id, int number)
+//       : AssignNode(id), number(number) {}
+//   void DumpAST(unsigned level) const override {
+//     cout << NestedLevel(level) << "(assign id: " << id << "; value: " <<
+//     number
+//          << ")" << endl;
+//   }
+// };
+
+class ArrayAssignNode : public AssignNode {};
+
+class SpecVar {
+public:
+  string id;
   unsigned size;
-  std::string type;
+  AssignNode *assign;
+
+  SpecVar(const string &id, unsigned size, AssignNode *assign)
+      : id(id), size(size), assign(assign) {}
+};
+
+typedef vector<SpecVar *> SpecVarList;
+
+class VarDeclNode : public StmtNode {
+  string id;
+  unsigned size;
+  AssignNode *assign;
+  string type;
 
 public:
-  VarDeclNode(std::string &id, unsigned size, std::string &type)
-      : id(id), size(size), type(type) {}
+  VarDeclNode(const string &id, unsigned size, AssignNode *assign,
+              const string &type)
+      : id(id), size(size), assign(assign), type(type) {}
 
-  void PrintAST() const override {
-    std::cout << "variable: " << id << std::endl
-              << "size: " << size << std::endl
-              << "type: " << type << std::endl
-              << std::endl;
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(varDecl id: " << id << "; size: " << size
+         << "; type: " << type;
+
+    if (assign) {
+      cout << endl;
+      assign->DumpAST(level + 1);
+      cout << NestedLevel(level);
+    }
+
+    cout << ")" << endl;
+  }
+};
+
+class VarDeclNodeListStmt : public StmtNode {
+public:
+  VarDeclNodeList varDeclList;
+  void DumpAST(unsigned level) const override {
+    for (const auto &varDecl : varDeclList)
+      varDecl->DumpAST(level);
   }
 };
 
 class VarInitNode : public StmtNode {
-  std::string id;
-  std::string type;
-  std::string value = "uninitialized";
+  string id;
+  string type;
+  string value = "uninitialized";
 
 public:
-  VarInitNode(std::string &id, std::string &type) 
-    : id(id), type(type) {}
+  VarInitNode(const string &id, const string &type) : id(id), type(type) {}
 
-  void PrintAST() const override {
-    std::cout << "variable: " << id << std::endl
-              << "type: " << type << std::endl
-              << "value: " << value << std::endl
-              << std::endl;
+  void DumpAST(unsigned level) const override {
+    cout << "variable: " << id << endl
+         << "type: " << type << endl
+         << "value: " << value << endl
+         << endl;
   }
 };
 
 class FuncDeclNode : public StmtNode {
-  std::string name;
-  std::string returnType;
+  string name;
+  string returnType;
   BlockNode *block;
 
 public:
-  FuncDeclNode(std::string &name, std::string &returnType, BlockNode *block)
+  FuncDeclNode(const string &name, const string &returnType, BlockNode *block)
       : name(name), returnType(returnType), block(block) {}
-  FuncDeclNode(std::string &name, BlockNode *block)
+  FuncDeclNode(const string &name, BlockNode *block)
       : name(name), returnType("void"), block(block) {}
 
-  void PrintAST() const override {
-    std::cout << "function: " << name << std::endl
-              << "return type: " << returnType << std::endl
-              << "block: " << std::endl;
-
-    block->PrintAST();
-
-    std::cout << std::endl;
+  void DumpAST(unsigned level) const override {
+    cout << NestedLevel(level) << "(function name: " << name
+         << "; returnType: " << returnType << endl;
+    block->DumpAST(level + 1);
+    cout << NestedLevel(level) << ")" << endl;
   }
 };
