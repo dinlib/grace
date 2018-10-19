@@ -17,9 +17,13 @@ static string NestedLevel(unsigned level) {
 
 class StmtNode;
 class VarDeclNode;
+class SpecVar;
+class LiteralNode;
 
 typedef vector<StmtNode *> StmtList;
 typedef vector<VarDeclNode *> VarDeclNodeList;
+typedef vector<SpecVar *> SpecVarList;
+typedef vector<LiteralNode *> LiteralNodeList;
 
 class Node {
 public:
@@ -29,33 +33,7 @@ public:
 
 class StmtNode : public Node {};
 class ExprNode : public Node {};
-
-class StringExprNode : public ExprNode {
-public:
-  string str;
-  StringExprNode(const string &str) : str(str) {}
-  void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(expr value: " << str << ")" << endl;
-  }
-};
-
-class IdentifierExprNode : public ExprNode {
-public:
-  string id;
-  IdentifierExprNode(const string &id) : id(id) {}
-  void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(expr value: " << id << ")" << endl;
-  }
-};
-
-class NumberExprNode : public ExprNode {
-public:
-  int value;
-  NumberExprNode(int value) : value(value) {}
-  void DumpAST(unsigned level) const override {
-    cout << NestedLevel(level) << "(expr value: " << value << ")" << endl;
-  }
-};
+class LiteralNode : public ExprNode {};
 
 class BlockNode : public Node {
 public:
@@ -84,15 +62,13 @@ public:
   void DumpAST(unsigned level) const override {
     cout << NestedLevel(level) << "(assign id: " << id << "; value: " << endl;
     expr->DumpAST(level + 1);
-    cout << NestedLevel(level) << ")" << endl;
+    cout << endl << NestedLevel(level) << ")" << endl;
   }
 };
 
-class LiteralNode : public ExprNode {};
-
 class ArrayAssignNode : public AssignNode {
 public:
-  vector<LiteralNode *> *literalList;
+  LiteralNodeList *literalList;
   ArrayAssignNode(const string &id, vector<LiteralNode *> *literalList)
       : AssignNode(id), literalList(literalList) {}
 
@@ -147,8 +123,6 @@ public:
   SpecVar(const string &id, unsigned size, AssignNode *assign)
       : id(id), size(size), assign(assign) {}
 };
-
-typedef vector<SpecVar *> SpecVarList;
 
 class VarDeclNode : public StmtNode {
   string id;

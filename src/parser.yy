@@ -73,79 +73,77 @@
 %type <SpecVarList *> spec_var_list
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
-%type <std::vector<LiteralNode *> *> literal_list
+%type <LiteralNodeList *> literal_list
 
 %printer { yyoutput << $$; } <*>;
 
 %start program;
 %%
 
-program: stmts                                                    { drv.program = $1; }
+program: stmts { drv.program = $1; }
        ;
 
-stmts: stmt                                                       { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt                                                { $1->stmts.push_back($2); $$ = $1; }
+stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
+      | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
       ;
 
-stmt: var_decl                                                    { $$ = $1; }
-    | func_decl                                                   { $$ = $1; }
-    | proc_decl                                                   { $$ = $1; }
+stmt: var_decl { $$ = $1; }
+    | func_decl { $$ = $1; }
+    | proc_decl { $$ = $1; }
     ;
 
-var_decl: VAR spec_var_list COLON data_type SEMICOLON             { $$ = new VarDeclNodeListStmt();
-                                                                    for (auto spec : *$2) {
-                                                                      $$->varDeclList.push_back(
-                                                                        new VarDeclNode(spec->id, spec->size, spec->assign, $4)
-                                                                      );
-                                                                      delete spec;
-                                                                    }
-                                                                    delete $2;
-                                                                  }
+var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
+                                                        for (auto spec : *$2) {
+                                                          $$->varDeclList.push_back(
+                                                            new VarDeclNode(spec->id, spec->size, spec->assign, $4)
+                                                          );
+                                                          delete spec;
+                                                        }
+                                                        delete $2;
+                                                      }
        ;
 
-spec_var_list: spec_var                                           { $$ = new SpecVarList(); $$->push_back($1); }
-             | spec_var COMMA spec_var_list                       { $3->push_back($1); $$ = $3; }
+spec_var_list: spec_var { $$ = new SpecVarList(); $$->push_back($1); }
+             | spec_var_list COMMA spec_var { $1->push_back($3); $$ = $1; }
              ;
 
-spec_var: spec_var_simple                                         { $$ = $1; }
-       | spec_var_simple_init                                     { $$ = $1; }
-       | spec_var_array                                           { $$ = $1; }
-       | spec_var_array_init                                      { $$ = $1; }
+spec_var: spec_var_simple { $$ = $1; }
+       | spec_var_simple_init { $$ = $1; }
+       | spec_var_array { $$ = $1; }
+       | spec_var_array_init { $$ = $1; }
        ;
 
-spec_var_simple: IDENTIFIER                                       { $$ = new SpecVar($1, 0, NULL); }
+spec_var_simple: IDENTIFIER { $$ = new SpecVar($1, 0, NULL); }
               ;
 
-spec_var_simple_init: IDENTIFIER ASSIGN expr                      { $$ = new SpecVar($1, 0, new AssignSimpleNode($1, $3)); }
+spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar($1, 0, new AssignSimpleNode($1, $3)); }
                     ;
 
-spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET               { $$ = new SpecVar($1, $3, NULL); }
+spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET { $$ = new SpecVar($1, $3, NULL); }
               ;
 
 spec_var_array_init: IDENTIFIER LBRACKET NUMBER RBRACKET ASSIGN LBRACE literal_list RBRACE                                               { $$ = new SpecVar($1, $3, new ArrayAssignNode($1, $7)); };
 
-literal_list: literal                    { $$ = new std::vector<LiteralNode *>(); $$->push_back($1); } 
-            | literal COMMA literal_list { $3->push_back($1); $$ = $3; }
+literal_list: literal { $$ = new LiteralNodeList(); $$->push_back($1); } 
+            | literal_list COMMA literal { $1->push_back($3); $$ = $1; }
             ;
 
 literal: STRING_LITERAL { $$ = new LiteralStringNode($1); }
        | NUMBER { $$ = new LiteralIntNode($1); }
        | BOOL_LITERAL { $$ = new LiteralBoolNode($1); };
 
-data_type: TYPE_INT                                               { $$ = "type_int"; }
-    | TYPE_STRING                                                 { $$ = "type_string"; }
-    | TYPE_BOOL                                                   { $$ = "type_bool"; }
+data_type: TYPE_INT { $$ = "type_int"; }
+    | TYPE_STRING { $$ = "type_string"; }
+    | TYPE_BOOL { $$ = "type_bool"; }
     ;
 
-func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block     { $$ = new FuncDeclNode($2, $6, $7); };
-proc_decl: DEF IDENTIFIER LPAREN RPAREN block                     { $$ = new FuncDeclNode($2, $5); };
+func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, $7); };
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
 
-block: LBRACE stmts RBRACE                                        { $$ = $2; }
-     | LBRACE RBRACE                                              { $$ = new BlockNode(); };
+block: LBRACE stmts RBRACE { $$ = $2; }
+     | LBRACE RBRACE { $$ = new BlockNode(); };
 
-expr: STRING_LITERAL											                        { $$ = new StringExprNode($1); }
-	  | IDENTIFIER                                                  { $$ = new IdentifierExprNode($1); }
-    | NUMBER                                                      { $$ = new NumberExprNode($1); }
+expr: literal { $$ = $1; }
     ;
 %%
 
