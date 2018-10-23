@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
       drv.dump_ast = true;
     } else if (!drv.parse(argv[i])) {
       if (drv.dump_ast)
-        drv.program->DumpAST(0);
+        drv.program->DumpAST(std::cout, 0);
     } else {
       res = 1;
     }

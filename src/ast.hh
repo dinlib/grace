@@ -23,7 +23,7 @@ typedef std::vector<LiteralNode *> LiteralNodeList;
 class Node {
 public:
   virtual ~Node() = default;
-  virtual void DumpAST(std::ofstream &ofs, unsigned level) const = 0;
+  virtual void DumpAST(std::ostream &os, unsigned level) const = 0;
   // virtual void SemanticAnalyses(Context &context) = 0;
   // virtual void CodeGen(llvm::Module &M) = 0;
 };
@@ -35,12 +35,12 @@ class LiteralNode : public ExprNode {};
 class BlockNode : public Node {
 public:
   StmtList stmts;
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(block" << std::endl;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(block" << std::endl;
     for (auto stmt : stmts) {
-      stmt->DumpAST(ofs, level + 1);
+      stmt->DumpAST(os, level + 1);
     }
-    ofs << NestedLevel(level) << ")" << std::endl;
+    os << NestedLevel(level) << ")" << std::endl;
   }
 };
 
@@ -56,11 +56,11 @@ public:
   AssignSimpleNode(const std::string &id, ExprNode *expr)
       : AssignNode(id), expr(expr) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(assign id: " << id
-        << "; value: " << std::endl;
-    expr->DumpAST(ofs, level + 1);
-    ofs << std::endl << NestedLevel(level) << ")" << std::endl;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(assign id: " << id
+       << "; value: " << std::endl;
+    expr->DumpAST(os, level + 1);
+    os << std::endl << NestedLevel(level) << ")" << std::endl;
   }
 };
 
@@ -71,17 +71,16 @@ public:
                   std::vector<LiteralNode *> *literalList)
       : AssignNode(id), literalList(literalList) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(assign id: " << id
-        << "; value: " << std::endl
-        << NestedLevel(level + 1) << "[" << std::endl;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(assign id: " << id << "; value: " << std::endl
+       << NestedLevel(level + 1) << "[" << std::endl;
 
     for (auto lit : *literalList) {
-      lit->DumpAST(ofs, level + 2);
-      ofs << "," << std::endl;
+      lit->DumpAST(os, level + 2);
+      os << "," << std::endl;
     }
 
-    ofs << NestedLevel(level + 1) << "]" << std::endl;
+    os << NestedLevel(level + 1) << "]" << std::endl;
   }
 };
 
@@ -89,8 +88,8 @@ class LiteralIntNode : public LiteralNode {
 public:
   int value;
   LiteralIntNode(int value) : value(value) {}
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(literal value: " << value << ")";
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(literal value: " << value << ")";
   }
 };
 
@@ -99,8 +98,8 @@ public:
   std::string str;
   LiteralStringNode(const std::string &str) : str(str) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(literal value: " << str << ")";
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(literal value: " << str << ")";
   }
 };
 
@@ -109,9 +108,9 @@ public:
   bool b;
   LiteralBoolNode(bool b) : b(b) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(literal value: " << std::boolalpha << b
-        << ")";
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(literal value: " << std::boolalpha << b
+       << ")";
   }
 };
 
@@ -136,26 +135,26 @@ public:
               const std::string &type)
       : id(id), size(size), assign(assign), type(type) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(varDecl id: " << id << "; size: " << size
-        << "; type: " << type;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(varDecl id: " << id << "; size: " << size
+       << "; type: " << type;
 
     if (assign) {
-      ofs << std::endl;
-      assign->DumpAST(ofs, level + 1);
-      ofs << NestedLevel(level);
+      os << std::endl;
+      assign->DumpAST(os, level + 1);
+      os << NestedLevel(level);
     }
 
-    ofs << ")" << std::endl;
+    os << ")" << std::endl;
   }
 };
 
 class VarDeclNodeListStmt : public StmtNode {
 public:
   VarDeclNodeList varDeclList;
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
+  void DumpAST(std::ostream &os, unsigned level) const override {
     for (const auto &varDecl : varDeclList)
-      varDecl->DumpAST(ofs, level);
+      varDecl->DumpAST(os, level);
   }
 };
 
@@ -168,11 +167,11 @@ public:
   VarInitNode(const std::string &id, const std::string &type)
       : id(id), type(type) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << "variable: " << id << std::endl
-        << "type: " << type << std::endl
-        << "value: " << value << std::endl
-        << std::endl;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << "variable: " << id << std::endl
+       << "type: " << type << std::endl
+       << "value: " << value << std::endl
+       << std::endl;
   }
 };
 
@@ -188,10 +187,10 @@ public:
   FuncDeclNode(const std::string &name, BlockNode *block)
       : name(name), returnType("void"), block(block) {}
 
-  void DumpAST(std::ofstream &ofs, unsigned level) const override {
-    ofs << NestedLevel(level) << "(function name: " << name
-        << "; returnType: " << returnType << std::endl;
-    block->DumpAST(ofs, level + 1);
-    ofs << NestedLevel(level) << ")" << std::endl;
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(function name: " << name
+       << "; returnType: " << returnType << std::endl;
+    block->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
   }
 };
