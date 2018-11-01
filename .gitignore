@@ -73,3 +73,4 @@ src/position.hh
 src/stack.hh
 
 grace
+.DS_Store

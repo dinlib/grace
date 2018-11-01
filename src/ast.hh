@@ -194,3 +194,23 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
+class IfThenElseNode : public StmtNode {
+  ExprNode *condition;
+  BlockNode *thenBlock, *elseBlock;
+
+public:
+  IfThenElseNode(ExprNode *condition, BlockNode *thenBlock,
+                 BlockNode *elseBlock)
+      : condition(condition), thenBlock(thenBlock), elseBlock(elseBlock) {}
+
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(if" << std::endl;
+    condition->DumpAST(os, level + 1);
+    os << std::endl;
+    thenBlock->DumpAST(os, level + 1);
+    if (elseBlock != NULL)
+      elseBlock->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};

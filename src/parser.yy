@@ -52,7 +52,8 @@
   DEF "def"
   TRUE "true"
   FALSE "false"
-
+  IF "if"
+  ELSE "else"
 ;
 
 %token <std::string> IDENTIFIER "identifier"
@@ -64,7 +65,7 @@
 %token <std::string> TYPE_BOOL "type_bool"
 %token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt func_decl proc_decl
+%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
@@ -90,7 +91,11 @@ stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
 stmt: var_decl { $$ = $1; }
     | func_decl { $$ = $1; }
     | proc_decl { $$ = $1; }
+		| if_then_else_stmt { $$ = $1; }
     ;
+
+if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
+				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode($3, $5, $7) ;}
 
 var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
                                                         for (auto spec : *$2) {
