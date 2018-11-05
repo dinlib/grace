@@ -255,3 +255,37 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
+class ReturnNode : public StmtNode {
+  ExprNode *expr;
+
+public:
+  ReturnNode(ExprNode *expr) : expr(expr) {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(return ";
+
+    if (expr != NULL) {
+      os << std::endl;
+      expr->DumpAST(os, level + 1);
+      os << std::endl << NestedLevel(level) << ")" << std::endl;
+    } else {
+      os << ")" << std::endl;
+    }
+  }
+};
+
+class StopNode : public StmtNode {
+public:
+  StopNode() {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(stop)" << std::endl;
+  }
+};
+
+class SkipNode : public StmtNode {
+public:
+  SkipNode() {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(skip)" << std::endl;
+  }
+};

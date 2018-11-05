@@ -58,13 +58,13 @@ make
 - [ ] stmtFor         
 
 #### Loop interrupt statement
-- [ ] stmtStop        
+- [X] stmtStop        
 
 #### Loop skip statement
-- [ ] stmtSkip        
+- [X] stmtSkip        
 
 #### Return statement
-- [ ] stmtReturn     
+- [X] stmtReturn     
 
 #### Procedure Call Statement
 - [ ] stmtCallProc    
