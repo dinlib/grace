@@ -214,3 +214,20 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
+class WhileNode : public StmtNode {
+  ExprNode *condition;
+  BlockNode *whileBlock;
+
+public:
+  WhileNode(ExprNode *condition, BlockNode *whileBlock)
+      : condition(condition), whileBlock(whileBlock) {}
+
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(while" << std::endl;
+    condition->DumpAST(os, level + 1);
+    os << std::endl;
+    whileBlock->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};

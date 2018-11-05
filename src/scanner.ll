@@ -66,6 +66,7 @@ loc.step();
 "var" return yy::parser::make_VAR(loc);
 "true" return yy::parser::make_BOOL_LITERAL(true, loc);
 "false" return yy::parser::make_BOOL_LITERAL(false, loc);
+"while" return yy::parser::make_WHILE(loc);
 
 "int" return yy::parser::make_TYPE_INT("type_int", loc);
 "string" return yy::parser::make_TYPE_STRING("type_string", loc);

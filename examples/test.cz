@@ -20,15 +20,17 @@ var x[2] = {5, true}: int;
 def main(): int {
   var v[10]: int;
 
-  if (true) {
-    var top[10]: bool;
+  while (true) {
+    if (true) {
+      if (false) {
+        var top1[10]: bool;
+      } else {
+        var top2[10]: bool;
+      }
+      var top[10]: bool;
+    }
   }
-
-  if (false) {
-    var top1[10]: bool;
-  } else {
-    var top2[10]: bool;
-  }
+  
 }
 
 def proc() {
