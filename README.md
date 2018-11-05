@@ -49,13 +49,13 @@ make
 - [ ] atrib           
 
 #### If statement
-- [ ] stmtIf          
+- [X] stmtIf          
 
 #### While statement
-- [ ] stmtWhile       
+- [X] stmtWhile       
 
 #### For statement
-- [ ] stmtFor         
+- [X] stmtFor         
 
 #### Loop interrupt statement
 - [X] stmtStop        
