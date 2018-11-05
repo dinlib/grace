@@ -214,3 +214,40 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
+class ExprLiteralNode : public ExprNode {
+  LiteralNode *literal;
+
+public:
+  ExprLiteralNode(LiteralNode *literal)
+    : literal(literal) {}
+
+  void DumpAST (std::ostream &os, unsigned level) const override {
+
+  }
+};
+
+class ExprNegativeNode : public ExprNode {
+  LiteralNode *literal;
+
+public:
+  ExprNegativeNode(LiteralNode *literal)
+    : literal(literal) {}
+
+  void DumpAST (std::ostream &os, unsigned level) const override {
+
+  }
+};
+
+class ExprOperationNode : public ExprNode {
+  LiteralNode *literal1, *literal2;
+  std::string exprOperator;
+
+public:
+  ExprOperationNode(LiteralNode *literal1, std::string exprOperator, LiteralNode *literal2)
+    : literal1(literal1), exprOperator(exprOperator), literal2(literal2) {}
+  
+  void DumpAST (std::ostream &os, unsigned level) const override {
+
+  }
+};

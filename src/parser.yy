@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%require "3.1"
+%require "3.0.4"
 %defines
 
 %define api.token.constructor
@@ -32,6 +32,10 @@
   PLUS "+"
   STAR "*"
   SLASH "/"
+  MOD "%"
+  OR "||"
+  AND "&&"
+  NOT "!"
   LPAREN "("
   RPAREN ")"
   LBRACKET "["
@@ -47,6 +51,7 @@
   GTEQ ">="
   COMMA ","
   QMARK "\""
+  DIFF "!="
 
   VAR "var"
   DEF "def"
@@ -55,6 +60,17 @@
   IF "if"
   ELSE "else"
 ;
+
+//definir precedência
+%left OR
+%left AND
+%left EQ DIFF
+%left LT LTEQ
+%left GT GTEQ
+%left PLUS MINUS
+%left STAR SLASH MOD
+%right NOT
+
 
 %token <std::string> IDENTIFIER "identifier"
 %token <int> NUMBER "number"
@@ -75,6 +91,7 @@
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
 %type <LiteralNodeList *> literal_list
+
 
 %printer { yyoutput << $$; } <*>;
 
@@ -148,8 +165,23 @@ proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); }
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
-expr: literal { $$ = $1; }
+expr: literal { $$ = new ExprLiteralNode($1); }
+    | MINUS literal { $$ = new ExpNegativeNode($2); }
+    | expr PLUS expr { $$ = new ExprOperationNode($1, PLUS, $3); }
+    | expr MINUS expr { $$ = new ExprOperationNode($1, MINUS, $3); }
+    | expr STAR expr { $$ = new ExprOperationNode($1, STAR, $3); }
+    | expr SLASH expr { $$ = new ExprOperationNode($1, SLASH, $3); }
+    | expr MOD expr { $$ = new ExprOperationNode($1, MOD, $3); }
+    | expr LT expr { $$ = new ExprOperationNode($1, LT, $3); }
+    | expr LTEQ expr { $$ = new ExprOperationNode($1, LTEQ, $3); }
+    | expr GT expr { $$ = new ExprOperationNode($1, GT, $3); }
+    | expr GTEQ expr { $$ = new ExprOperationNode($1, GTEQ, $3); }
+    | expr EQ expr { $$ = new ExprOperationNode($1, EQ, $3); }
+    | expr DIFF expr { $$ = new ExprOperationNode($1, DIFF, $3); }
+    | expr AND expr { $$ = new ExprOperationNode($1, AND, $3); }
+    | expr OR expr { $$ = new ExprOperationNode($1, OR, $3); }
     ;
+
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
