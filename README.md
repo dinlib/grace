@@ -49,22 +49,22 @@ make
 - [ ] atrib           
 
 #### If statement
-- [ ] stmtIf          
+- [X] stmtIf          
 
 #### While statement
-- [ ] stmtWhile       
+- [X] stmtWhile       
 
 #### For statement
-- [ ] stmtFor         
+- [X] stmtFor         
 
 #### Loop interrupt statement
-- [ ] stmtStop        
+- [X] stmtStop        
 
 #### Loop skip statement
-- [ ] stmtSkip        
+- [X] stmtSkip        
 
 #### Return statement
-- [ ] stmtReturn     
+- [X] stmtReturn     
 
 #### Procedure Call Statement
 - [ ] stmtCallProc    

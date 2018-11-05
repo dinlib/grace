@@ -18,20 +18,35 @@ var v[10]: int;
 var x[2] = {5, true}: int;
 
 def main(): int {
+  for (var a = 0: int; true; true) {
+    var b = "Hello World": string;
+
+    if (false) {
+      stop;
+    }    
+  }
+
   var v[10]: int;
 
-  if (true) {
-    var top[10]: bool;
+  while (true) {
+    if (true) {
+      if (false) {
+        var top1[10]: bool;
+      } else {
+        var top2[10]: bool;
+        skip;
+      }
+      var top[10]: bool;
+    }
   }
 
-  if (false) {
-    var top1[10]: bool;
-  } else {
-    var top2[10]: bool;
-  }
+ return 0; 
 }
 
 def proc() {
   var name: string;
 
+  if (true) {
+    return;
+  }
 }

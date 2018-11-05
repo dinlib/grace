@@ -251,3 +251,77 @@ public:
 
   }
 };
+class WhileNode : public StmtNode {
+  ExprNode *condition;
+  BlockNode *whileBlock;
+
+public:
+  WhileNode(ExprNode *condition, BlockNode *whileBlock)
+      : condition(condition), whileBlock(whileBlock) {}
+
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(while" << std::endl;
+    condition->DumpAST(os, level + 1);
+    os << std::endl;
+    whileBlock->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};
+
+class ForNode : public StmtNode {
+  VarDeclNodeListStmt *initialization;
+  ExprNode *condition, *step;
+  BlockNode *forBlock;
+
+public:
+  ForNode(VarDeclNodeListStmt *initialization, ExprNode *condition,
+          ExprNode *step, BlockNode *forBlock)
+      : initialization(initialization), condition(condition), step(step),
+        forBlock(forBlock) {}
+
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(for" << std::endl;
+    initialization->DumpAST(os, level + 1);
+    os << std::endl;
+    condition->DumpAST(os, level + 1);
+    os << std::endl;
+    step->DumpAST(os, level + 1);
+    os << std::endl;
+    forBlock->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};
+
+class ReturnNode : public StmtNode {
+  ExprNode *expr;
+
+public:
+  ReturnNode(ExprNode *expr) : expr(expr) {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(return ";
+
+    if (expr != NULL) {
+      os << std::endl;
+      expr->DumpAST(os, level + 1);
+      os << std::endl << NestedLevel(level) << ")" << std::endl;
+    } else {
+      os << ")" << std::endl;
+    }
+  }
+};
+
+class StopNode : public StmtNode {
+public:
+  StopNode() {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(stop)" << std::endl;
+  }
+};
+
+class SkipNode : public StmtNode {
+public:
+  SkipNode() {}
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(skip)" << std::endl;
+  }
+};

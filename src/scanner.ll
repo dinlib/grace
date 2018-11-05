@@ -60,12 +60,17 @@ loc.step();
 "," return yy::parser::make_COMMA(loc);
 "\"" return yy::parser::make_QMARK(loc);
 
+"for" return yy::parser::make_FOR(loc);
 "if" return yy::parser::make_IF(loc);
 "else" return yy::parser::make_ELSE(loc);
 "def" return yy::parser::make_DEF(loc);
 "var" return yy::parser::make_VAR(loc);
 "true" return yy::parser::make_BOOL_LITERAL(true, loc);
 "false" return yy::parser::make_BOOL_LITERAL(false, loc);
+"while" return yy::parser::make_WHILE(loc);
+"return" return yy::parser::make_RETURN(loc);
+"stop" return yy::parser::make_STOP(loc);
+"skip" return yy::parser::make_SKIP(loc);
 
 "int" return yy::parser::make_TYPE_INT("type_int", loc);
 "string" return yy::parser::make_TYPE_STRING("type_string", loc);
