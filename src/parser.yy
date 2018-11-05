@@ -55,6 +55,7 @@
   IF "if"
   ELSE "else"
   WHILE "while"
+  FOR "for"
 ;
 
 %token <std::string> IDENTIFIER "identifier"
@@ -66,7 +67,7 @@
 %token <std::string> TYPE_BOOL "type_bool"
 %token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt
+%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
@@ -94,10 +95,12 @@ stmt: var_decl { $$ = $1; }
     | proc_decl { $$ = $1; }
 		| if_then_else_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
+    | for_stmt {$$ = $1; }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
-				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode($3, $5, $7) ;}
+				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode($3, $5, $7); }
+        ;
 
 var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
                                                         for (auto spec : *$2) {
@@ -155,6 +158,7 @@ expr: literal { $$ = $1; }
 
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
 
+for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNode($3, $4, $6, $8); };
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {

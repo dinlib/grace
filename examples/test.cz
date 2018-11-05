@@ -18,6 +18,10 @@ var v[10]: int;
 var x[2] = {5, true}: int;
 
 def main(): int {
+  for (var a = 0: int; true; true) {
+    var b = "Hello World": string;    
+  }
+
   var v[10]: int;
 
   while (true) {

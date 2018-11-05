@@ -231,3 +231,27 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
+class ForNode : public StmtNode {
+  VarDeclNodeListStmt *initialization;
+  ExprNode *condition, *step;
+  BlockNode *forBlock;
+
+public:
+  ForNode(VarDeclNodeListStmt *initialization, ExprNode *condition,
+          ExprNode *step, BlockNode *forBlock)
+      : initialization(initialization), condition(condition), step(step),
+        forBlock(forBlock) {}
+
+  void DumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(for" << std::endl;
+    initialization->DumpAST(os, level + 1);
+    os << std::endl;
+    condition->DumpAST(os, level + 1);
+    os << std::endl;
+    step->DumpAST(os, level + 1);
+    os << std::endl;
+    forBlock->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};

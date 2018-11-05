@@ -60,6 +60,7 @@ loc.step();
 "," return yy::parser::make_COMMA(loc);
 "\"" return yy::parser::make_QMARK(loc);
 
+"for" return yy::parser::make_FOR(loc);
 "if" return yy::parser::make_IF(loc);
 "else" return yy::parser::make_ELSE(loc);
 "def" return yy::parser::make_DEF(loc);
