@@ -52,4 +52,5 @@ def proc() {
 }
 
 var expr1 = 10, expr2 = 20: int;
-var result = 10 * 20 / 10: int;
+var result1 = 10 + 20: int;
+var result2 = expr1 + expr2: int;

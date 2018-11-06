@@ -222,10 +222,23 @@ public:
   ExprLiteralNode(LiteralNode *literal)
     : literal(literal) {}
 
-  void DumpAST (std::ostream &os, unsigned level) const override {
+    void DumpAST (std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal)" << std::endl;
   }
 };
+
+class ExprIdentifierNode : public ExprNode {
+  std::string id;
+
+public:
+  ExprIdentifierNode(std::string id)
+    : id(id) {}
+
+  void DumpAST (std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(var " << id << " )" << std::endl;
+  }
+};
+
 
 class ExprNegativeNode : public ExprNode {
   ExprNode *expr;
