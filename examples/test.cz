@@ -50,3 +50,6 @@ def proc() {
     return;
   }
 }
+
+var expr1 = 10, expr2 = 20: int;
+var result = 10 * 20 / 10: int;

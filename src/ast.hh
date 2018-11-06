@@ -223,34 +223,41 @@ public:
     : literal(literal) {}
 
   void DumpAST (std::ostream &os, unsigned level) const override {
-
+    os << NestedLevel(level) << "(literal)" << std::endl;
   }
 };
 
 class ExprNegativeNode : public ExprNode {
-  LiteralNode *literal;
+  ExprNode *expr;
 
 public:
-  ExprNegativeNode(LiteralNode *literal)
-    : literal(literal) {}
+  ExprNegativeNode(ExprNode *expr)
+    : expr(expr) {}
 
   void DumpAST (std::ostream &os, unsigned level) const override {
-
+    os << NestedLevel(level) << "(-" << std::endl;
+    expr->DumpAST(os, level + 1);
+    os << ")" << std::endl;
   }
 };
 
 class ExprOperationNode : public ExprNode {
-  LiteralNode *literal1, *literal2;
+  ExprNode *expr1, *expr2;
   std::string exprOperator;
 
 public:
-  ExprOperationNode(LiteralNode *literal1, std::string exprOperator, LiteralNode *literal2)
-    : literal1(literal1), exprOperator(exprOperator), literal2(literal2) {}
+  ExprOperationNode(ExprNode *expr1, std::string exprOperator, ExprNode *expr2)
+    : expr1(expr1), exprOperator(exprOperator), expr2(expr2) {}
   
   void DumpAST (std::ostream &os, unsigned level) const override {
-
+    os << NestedLevel(level) << "(expr" << std::endl;
+    expr1->DumpAST(os, level + 1);
+    os << exprOperator << std::endl;
+    expr2->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
   }
 };
+
 class WhileNode : public StmtNode {
   ExprNode *condition;
   BlockNode *whileBlock;

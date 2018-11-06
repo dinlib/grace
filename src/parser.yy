@@ -177,20 +177,20 @@ block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
 expr: literal { $$ = new ExprLiteralNode($1); }
-    | MINUS literal { $$ = new ExpNegativeNode($2); }
-    | expr PLUS expr { $$ = new ExprOperationNode($1, PLUS, $3); }
-    | expr MINUS expr { $$ = new ExprOperationNode($1, MINUS, $3); }
-    | expr STAR expr { $$ = new ExprOperationNode($1, STAR, $3); }
-    | expr SLASH expr { $$ = new ExprOperationNode($1, SLASH, $3); }
-    | expr MOD expr { $$ = new ExprOperationNode($1, MOD, $3); }
-    | expr LT expr { $$ = new ExprOperationNode($1, LT, $3); }
-    | expr LTEQ expr { $$ = new ExprOperationNode($1, LTEQ, $3); }
-    | expr GT expr { $$ = new ExprOperationNode($1, GT, $3); }
-    | expr GTEQ expr { $$ = new ExprOperationNode($1, GTEQ, $3); }
-    | expr EQ expr { $$ = new ExprOperationNode($1, EQ, $3); }
-    | expr DIFF expr { $$ = new ExprOperationNode($1, DIFF, $3); }
-    | expr AND expr { $$ = new ExprOperationNode($1, AND, $3); }
-    | expr OR expr { $$ = new ExprOperationNode($1, OR, $3); }
+    | MINUS expr { $$ = new ExprNegativeNode($2); }
+    | expr PLUS expr { $$ = new ExprOperationNode($1, "+", $3); }
+    | expr MINUS expr { $$ = new ExprOperationNode($1, "-", $3); }
+    | expr STAR expr { $$ = new ExprOperationNode($1, "*", $3); }
+    | expr SLASH expr { $$ = new ExprOperationNode($1, "/", $3); }
+    | expr MOD expr { $$ = new ExprOperationNode($1, "%", $3); }
+    | expr LT expr { $$ = new ExprOperationNode($1, "<", $3); }
+    | expr LTEQ expr { $$ = new ExprOperationNode($1, "<=", $3); }
+    | expr GT expr { $$ = new ExprOperationNode($1, ">", $3); }
+    | expr GTEQ expr { $$ = new ExprOperationNode($1, ">=", $3); }
+    | expr EQ expr { $$ = new ExprOperationNode($1, "==", $3); }
+    | expr DIFF expr { $$ = new ExprOperationNode($1, "!=", $3); }
+    | expr AND expr { $$ = new ExprOperationNode($1, "&&", $3); }
+    | expr OR expr { $$ = new ExprOperationNode($1, "||", $3); }
     ;
 
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
