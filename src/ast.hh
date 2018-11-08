@@ -215,18 +215,6 @@ public:
   }
 };
 
-/* class ExprLiteralNode : public ExprNode {
-  LiteralNode *literal;
-
-public:
-  ExprLiteralNode(LiteralNode *literal)
-    : literal(literal) {}
-
-    void DumpAST (std::ostream &os, unsigned level) const override {
-    os << NestedLevel(level) << "(literal)" << std::endl;
-  }
-};
- */
 class ExprIdentifierNode : public ExprNode {
   std::string id;
 
