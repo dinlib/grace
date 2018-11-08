@@ -215,7 +215,7 @@ public:
   }
 };
 
-class ExprLiteralNode : public ExprNode {
+/* class ExprLiteralNode : public ExprNode {
   LiteralNode *literal;
 
 public:
@@ -226,7 +226,7 @@ public:
     os << NestedLevel(level) << "(literal)" << std::endl;
   }
 };
-
+ */
 class ExprIdentifierNode : public ExprNode {
   std::string id;
 

@@ -177,7 +177,7 @@ block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
-    | literal { $$ = new ExprLiteralNode($1); }
+    | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, "+", $3); }
     | expr MINUS expr { $$ = new ExprOperationNode($1, "-", $3); }
