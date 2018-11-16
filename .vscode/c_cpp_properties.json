@@ -3,7 +3,9 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include/**",
+                "/usr/local/Cellar/llvm/7.0.0/include"
             ],
             "defines": [],
             "macFrameworkPath": [

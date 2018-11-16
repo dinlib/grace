@@ -1,9 +1,12 @@
 #pragma once
 
-#include "context.hh"
+#include "Context.hh"
+#include "llvm/IR/Module.h"
 #include <fstream>
 #include <string>
 #include <vector>
+
+using namespace llvm;
 
 static std::string NestedLevel(unsigned level) {
   std::string str(level * 4, ' ');
@@ -24,8 +27,7 @@ class Node {
 public:
   virtual ~Node() = default;
   virtual void DumpAST(std::ostream &os, unsigned level) const = 0;
-  // virtual void SemanticAnalyses(Context &context) = 0;
-  // virtual void CodeGen(llvm::Module &M) = 0;
+  virtual Value *codegen(Context &C) { return NULL; }
 };
 
 class StmtNode : public Node {};
@@ -42,6 +44,8 @@ public:
     }
     os << NestedLevel(level) << ")" << std::endl;
   }
+
+  Value *codegen(Context &C) override;
 };
 
 class AssignNode : public StmtNode {
@@ -62,6 +66,8 @@ public:
     expr->DumpAST(os, level + 1);
     os << std::endl << NestedLevel(level) << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class ArrayAssignNode : public AssignNode {
@@ -82,6 +88,8 @@ public:
 
     os << NestedLevel(level + 1) << "]" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class LiteralIntNode : public LiteralNode {
@@ -91,6 +99,8 @@ public:
   void DumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << value << ")";
   }
+
+  Value *codegen(Context &C) override;
 };
 
 class LiteralStringNode : public LiteralNode {
@@ -101,6 +111,8 @@ public:
   void DumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << str << ")";
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class LiteralBoolNode : public LiteralNode {
@@ -112,6 +124,8 @@ public:
     os << NestedLevel(level) << "(literal value: " << std::boolalpha << b
        << ")";
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class SpecVar {
@@ -147,6 +161,8 @@ public:
 
     os << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class VarDeclNodeListStmt : public StmtNode {
@@ -173,6 +189,8 @@ public:
        << "value: " << value << std::endl
        << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class FuncDeclNode : public StmtNode {
@@ -193,6 +211,8 @@ public:
     block->DumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class IfThenElseNode : public StmtNode {
@@ -213,6 +233,8 @@ public:
       elseBlock->DumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class WhileNode : public StmtNode {
@@ -230,6 +252,8 @@ public:
     whileBlock->DumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class ForNode : public StmtNode {
@@ -254,6 +278,8 @@ public:
     forBlock->DumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class ReturnNode : public StmtNode {
@@ -272,6 +298,8 @@ public:
       os << ")" << std::endl;
     }
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class StopNode : public StmtNode {
@@ -280,6 +308,8 @@ public:
   void DumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(stop)" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };
 
 class SkipNode : public StmtNode {
@@ -288,4 +318,6 @@ public:
   void DumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(skip)" << std::endl;
   }
+
+  // Value *codegen(Context &C) override;
 };

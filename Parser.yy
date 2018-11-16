@@ -8,7 +8,7 @@
 
 %code requires {
   #include <string>
-  #include "ast.hh"
+  #include "AST.hh"
   class Driver;
 }
 
@@ -21,7 +21,7 @@
 %define parse.error verbose
 
 %code { 
-  #include "driver.hh"
+  #include "Driver.hh"
 }
 
 %define api.token.prefix {TOK_}

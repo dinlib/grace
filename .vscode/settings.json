@@ -17,6 +17,15 @@
     "iosfwd": "cpp",
     "__locale": "cpp",
     "locale": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "__config": "cpp",
+    "__nullptr": "cpp",
+    "cstddef": "cpp",
+    "exception": "cpp",
+    "new": "cpp",
+    "stdexcept": "cpp",
+    "type_traits": "cpp",
+    "typeinfo": "cpp",
+    "algorithm": "cpp"
   }
 }

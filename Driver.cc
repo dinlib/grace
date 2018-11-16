@@ -1,8 +1,9 @@
-#include "driver.hh"
-#include "parser.hh"
+#include "Driver.hh"
+#include "Parser.hh"
 
 Driver::Driver()
-    : trace_parsing(false), trace_scanning(false), dump_ast(false) {}
+    : trace_parsing(false), trace_scanning(false), dump_ast(false),
+      dump_ir(false) {}
 
 int Driver::parse(const std::string &f) {
   file = f;

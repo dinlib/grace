@@ -3,8 +3,8 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
-#include "driver.hh"  
-#include "parser.hh"
+#include "Driver.hh"  
+#include "Parser.hh"
 
 #undef yywrap
 #define yywrap() 1

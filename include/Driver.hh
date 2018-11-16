@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ast.hh"
-#include "parser.hh"
+#include "AST.hh"
+#include "Parser.hh"
 #include <map>
 #include <string>
 
@@ -34,6 +34,7 @@ public:
   bool trace_scanning;
 
   bool dump_ast;
+  bool dump_ir;
 
   // The token's location used by the scanner.
   yy::location location;
