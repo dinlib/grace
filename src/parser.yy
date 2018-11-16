@@ -192,6 +192,7 @@ expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | expr DIFF expr { $$ = new ExprOperationNode($1, "!=", $3); }
     | expr AND expr { $$ = new ExprOperationNode($1, "&&", $3); }
     | expr OR expr { $$ = new ExprOperationNode($1, "||", $3); }
+    | LPAREN expr RPAREN { $$ = $2; }
     ;
 
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
