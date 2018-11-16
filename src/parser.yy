@@ -86,7 +86,7 @@
 %token <std::string> TYPE_BOOL "type_bool"
 %token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt
+%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt assign_stmt
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
@@ -119,6 +119,7 @@ stmt: var_decl { $$ = $1; }
     | return_stmt { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
+    | assign_stmt { $$ = $1; }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
@@ -201,6 +202,9 @@ for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNod
 
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
+
+assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }; 
+
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
