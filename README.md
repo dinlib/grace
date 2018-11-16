@@ -79,12 +79,13 @@ make
 - [ ] block           
 
 ### Expression
-- [ ] Negative        
-- [ ] Mult, Div, Mod  
-- [ ] Add, Sub        
-- [ ] MT, MEQT        
-- [ ] LT, LEQT        
-- [ ] EQ, DIFF        
-- [ ] AND              
-- [ ] OR              
+- [ ] Negative
+- [ ] NOT        
+- [X] Mult, Div, Mod  
+- [X] Add, Sub        
+- [X] GT, GEQT        
+- [X] LT, LEQT        
+- [X] EQ, DIFF        
+- [X] AND              
+- [X] OR              
 - [ ] Ternary OP      

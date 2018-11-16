@@ -215,6 +215,50 @@ public:
   }
 };
 
+class ExprIdentifierNode : public ExprNode {
+  std::string id;
+
+public:
+  ExprIdentifierNode(std::string id)
+    : id(id) {}
+
+  void DumpAST (std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(var " << id << " )" << std::endl;
+  }
+};
+
+
+class ExprNegativeNode : public ExprNode {
+  ExprNode *expr;
+
+public:
+  ExprNegativeNode(ExprNode *expr)
+    : expr(expr) {}
+
+  void DumpAST (std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(-" << std::endl;
+    expr->DumpAST(os, level + 1);
+    os << ")" << std::endl;
+  }
+};
+
+class ExprOperationNode : public ExprNode {
+  ExprNode *expr1, *expr2;
+  std::string exprOperator;
+
+public:
+  ExprOperationNode(ExprNode *expr1, std::string exprOperator, ExprNode *expr2)
+    : expr1(expr1), exprOperator(exprOperator), expr2(expr2) {}
+  
+  void DumpAST (std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(expr" << std::endl;
+    expr1->DumpAST(os, level + 1);
+    os << exprOperator << std::endl;
+    expr2->DumpAST(os, level + 1);
+    os << NestedLevel(level) << ")" << std::endl;
+  }
+};
+
 class WhileNode : public StmtNode {
   ExprNode *condition;
   BlockNode *whileBlock;
