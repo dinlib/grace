@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%require "3.1"
+%require "3.0.4"
 %defines
 
 %define api.token.constructor
@@ -32,6 +32,10 @@
   PLUS "+"
   STAR "*"
   SLASH "/"
+  MOD "%"
+  OR "||"
+  AND "&&"
+  NOT "!"
   LPAREN "("
   RPAREN ")"
   LBRACKET "["
@@ -47,6 +51,7 @@
   GTEQ ">="
   COMMA ","
   QMARK "\""
+  DIFF "!="
 
   VAR "var"
   DEF "def"
@@ -61,6 +66,17 @@
   SKIP "skip"
 ;
 
+//definir precedência
+%left OR
+%left AND
+%left EQ DIFF
+%left LT LTEQ
+%left GT GTEQ
+%left PLUS MINUS
+%left STAR SLASH MOD
+%right NOT
+
+
 %token <std::string> IDENTIFIER "identifier"
 %token <int> NUMBER "number"
 %token <bool> BOOL_LITERAL "bool literal"
@@ -70,7 +86,7 @@
 %token <std::string> TYPE_BOOL "type_bool"
 %token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt
+%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt assign_stmt
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
@@ -80,6 +96,7 @@
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
 %type <LiteralNodeList *> literal_list
+
 
 %printer { yyoutput << $$; } <*>;
 
@@ -102,6 +119,7 @@ stmt: var_decl { $$ = $1; }
     | return_stmt { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
+    | assign_stmt { $$ = $1; }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
@@ -159,7 +177,23 @@ proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); }
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
-expr: literal { $$ = $1; }
+expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
+    | literal { $$ = $1; }
+    | MINUS expr { $$ = new ExprNegativeNode($2); }
+    | expr PLUS expr { $$ = new ExprOperationNode($1, "+", $3); }
+    | expr MINUS expr { $$ = new ExprOperationNode($1, "-", $3); }
+    | expr STAR expr { $$ = new ExprOperationNode($1, "*", $3); }
+    | expr SLASH expr { $$ = new ExprOperationNode($1, "/", $3); }
+    | expr MOD expr { $$ = new ExprOperationNode($1, "%", $3); }
+    | expr LT expr { $$ = new ExprOperationNode($1, "<", $3); }
+    | expr LTEQ expr { $$ = new ExprOperationNode($1, "<=", $3); }
+    | expr GT expr { $$ = new ExprOperationNode($1, ">", $3); }
+    | expr GTEQ expr { $$ = new ExprOperationNode($1, ">=", $3); }
+    | expr EQ expr { $$ = new ExprOperationNode($1, "==", $3); }
+    | expr DIFF expr { $$ = new ExprOperationNode($1, "!=", $3); }
+    | expr AND expr { $$ = new ExprOperationNode($1, "&&", $3); }
+    | expr OR expr { $$ = new ExprOperationNode($1, "||", $3); }
+    | LPAREN expr RPAREN { $$ = $2; }
     ;
 
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
@@ -168,6 +202,9 @@ for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNod
 
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
+
+assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }; 
+
 %%
 
 void yy::parser::error(const location_type &l, const std::string &m) {
