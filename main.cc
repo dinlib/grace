@@ -1,6 +1,5 @@
 #include "Context.hh"
 #include "Driver.hh"
-#include <iostream>
 
 int main(int argc, char **argv) {
   int res = 0;
@@ -16,7 +15,7 @@ int main(int argc, char **argv) {
       drv.dump_ir = true;
     } else if (!drv.parse(argv[i])) {
       if (drv.dump_ast)
-        drv.program->DumpAST(std::cout, 0);
+          drv.program->dumpAST(std::cout, 0);
     } else {
       res = 1;
     }

@@ -18,7 +18,7 @@ Clone the repository at `git clone https://github.com/grsouza/czin.git`.
 ```bash
 cd czin
 make
-./czin name-of-file.cz
+./czin Name-of-file.cz
 ```
 ## Tasks
 ### Program
@@ -76,7 +76,7 @@ make
 - [ ] stmtWrite       
 
 ##### Statement Block
-- [ ] block           
+- [ ] Body
 
 ### Expression
 - [ ] Negative

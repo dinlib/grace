@@ -1,17 +1,36 @@
 #pragma once
 
+#include <list>
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 
+using namespace llvm;
+
 class Context {
-  llvm::LLVMContext TheContext;
-  llvm::IRBuilder<> TheBuilder;
-  llvm::Module TheModule;
+    LLVMContext TheContext;
+    IRBuilder<> TheBuilder;
+    Module TheModule;
+
+    std::list<std::map<std::string, Value *>> NamedValues;
 
 public:
-  Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {}
-  llvm::Module &getModule() { return TheModule; }
-  llvm::LLVMContext &getContext() { return TheModule.getContext(); }
+    Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {}
 
-  void dumpIR() const { TheModule.print(llvm::errs(), nullptr); }
+    Module &getModule() { return TheModule; }
+
+    LLVMContext &getContext() { return TheModule.getContext(); }
+
+    IRBuilder<> &getBuilder() { return TheBuilder; }
+
+    Type *getLLVMType(std::string &TypeRepresentation);
+
+    void dumpIR() const { TheModule.print(errs(), nullptr); }
+
+    void enterScope();
+
+    void leaveScope();
+
+    void insertNamedValueIntoScope(const std::string &Name, Value *V);
+
+    Value *getNamedValueInScope(std::string &Name);
 };
