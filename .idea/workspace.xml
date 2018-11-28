@@ -12,15 +12,51 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="10988de1-892a-4173-8069-692c3a598f96" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/include/Operators.hh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Codegen.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Codegen.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Context.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Context.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.yy" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.yy" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/function_test.gr" beforeDir="false" afterPath="$PROJECT_DIR$/examples/function_test.gr" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/AST.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/AST.hh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Context.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/Context.hh" afterDir="false" />
+    <list default="true" id="10988de1-892a-4173-8069-692c3a598f96" name="Default Changelist" comment="Implementing IR generation for function">
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CMakeCCompiler.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CMakeCXXCompiler.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CMakeDetermineCompilerABI_C.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CMakeDetermineCompilerABI_CXX.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CMakeSystem.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CompilerIdC/CMakeCCompilerId.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.12.3/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeDirectoryInformation.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeOutput.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeRuleHashes.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-environment.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/cmake.check_cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.cxx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/CXX.includecache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/DependInfo.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/build.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/cmake_clean.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/depend.internal" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/depend.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/flags.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/link.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/grace.dir/progress.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/intrinsics_gen.dir/DependInfo.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/intrinsics_gen.dir/build.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/intrinsics_gen.dir/cmake_clean.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/intrinsics_gen.dir/progress.make" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/Parser.cc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/Parser.hh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/Scanner.cc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/grace.cbp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/location.hh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/position.hh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmake-build-debug/stack.hh" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -34,7 +70,7 @@
     <session id="935229002">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
+          <entry key="project.closed" value="5" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.10" value="3" />
           <entry key="project.open.time.9" value="1" />
@@ -68,14 +104,14 @@
           <entry key="gc" value="4" />
           <entry key="gr" value="241" />
           <entry key="hh" value="1498" />
-          <entry key="txt" value="52" />
+          <entry key="txt" value="91" />
           <entry key="yy" value="105" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="ObjectiveC" value="6036" />
-          <entry key="PLAIN_TEXT" value="402" />
+          <entry key="PLAIN_TEXT" value="441" />
         </counts>
       </usages-collector>
     </session>
@@ -86,7 +122,7 @@
         <entry file="file://$PROJECT_DIR$/Codegen.cc">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="312">
-              <caret line="249" column="18" lean-forward="true" selection-start-line="249" selection-start-column="18" selection-end-line="249" selection-end-column="18" />
+              <caret line="246" column="18" selection-start-line="246" selection-start-column="18" selection-end-line="246" selection-end-column="18" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -97,8 +133,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/examples/function_test.gr">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" column="14" selection-start-line="5" selection-start-column="14" selection-end-line="5" selection-end-column="14" />
+            <state relative-caret-position="153">
+              <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
             </state>
           </provider>
         </entry>
@@ -107,7 +143,7 @@
         <entry file="file://$PROJECT_DIR$/include/Operators.hh">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="238">
-              <caret line="14" column="9" lean-forward="true" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+              <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
             </state>
           </provider>
         </entry>
@@ -276,7 +312,7 @@
       <workItem from="1542920546260" duration="5427000" />
       <workItem from="1542928510814" duration="157000" />
       <workItem from="1543409938213" duration="1105000" />
-      <workItem from="1543423635241" duration="5455000" />
+      <workItem from="1543423635241" duration="5646000" />
     </task>
     <task id="LOCAL-00001" summary="Implementing IR generation for function">
       <created>1542926016525</created>
@@ -285,11 +321,18 @@
       <option name="project" value="LOCAL" />
       <updated>1542926016525</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Generating IR for some of the nodes">
+      <created>1543429708402</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1543429708403</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13673000" />
+    <option name="totallyTimeSpent" value="13864000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -309,7 +352,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.27593583" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.27593583" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -335,7 +378,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Implementing IR generation for function" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implementing IR generation for function" />
+    <MESSAGE value="Generating IR for some of the nodes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Generating IR for some of the nodes" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
@@ -502,7 +546,7 @@
     <entry file="file://$PROJECT_DIR$/Codegen.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="312">
-          <caret line="249" column="18" lean-forward="true" selection-start-line="249" selection-start-column="18" selection-end-line="249" selection-end-column="18" />
+          <caret line="246" column="18" selection-start-line="246" selection-start-column="18" selection-end-line="246" selection-end-column="18" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
@@ -522,14 +566,14 @@
     <entry file="file://$PROJECT_DIR$/include/Operators.hh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
-          <caret line="14" column="9" lean-forward="true" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+          <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/function_test.gr">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="14" selection-start-line="5" selection-start-column="14" selection-end-line="5" selection-end-column="14" />
+        <state relative-caret-position="153">
+          <caret line="9" lean-forward="true" selection-start-line="9" selection-end-line="9" />
         </state>
       </provider>
     </entry>
