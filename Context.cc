@@ -18,7 +18,7 @@ Type *Context::getLLVMType(std::string &TypeRepresentation) {
 }
 
 void Context::enterScope() {
-    std::map<std::string, Value *> NewScope;
+    std::map<std::string, AllocaInst *> NewScope;
     NamedValues.push_front(NewScope);
 }
 
@@ -26,7 +26,7 @@ void Context::leaveScope() {
     NamedValues.pop_front();
 }
 
-Value *Context::getNamedValueInScope(std::string &Name) {
+AllocaInst *Context::getNamedValueInScope(std::string &Name) {
     for (auto &Scope : NamedValues) {
         auto It = Scope.find(Name);
         if (It != Scope.end())
@@ -36,7 +36,7 @@ Value *Context::getNamedValueInScope(std::string &Name) {
     return nullptr;
 }
 
-void Context::insertNamedValueIntoScope(const std::string &Name, Value *V) {
+void Context::insertNamedValueIntoScope(const std::string &Name, AllocaInst *V) {
     NamedValues.front()[Name] = V;
 }
 

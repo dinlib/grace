@@ -9,6 +9,7 @@
 %code requires {
   #include <string>
   #include "AST.hh"
+  #include "Operators.hh"
   class Driver;
 }
 
@@ -180,19 +181,19 @@ Body: LBRACE stmts RBRACE { $$ = $2; }
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
-    | expr PLUS expr { $$ = new ExprOperationNode($1, "+", $3); }
-    | expr MINUS expr { $$ = new ExprOperationNode($1, "-", $3); }
-    | expr STAR expr { $$ = new ExprOperationNode($1, "*", $3); }
-    | expr SLASH expr { $$ = new ExprOperationNode($1, "/", $3); }
-    | expr MOD expr { $$ = new ExprOperationNode($1, "%", $3); }
-    | expr LT expr { $$ = new ExprOperationNode($1, "<", $3); }
-    | expr LTEQ expr { $$ = new ExprOperationNode($1, "<=", $3); }
-    | expr GT expr { $$ = new ExprOperationNode($1, ">", $3); }
-    | expr GTEQ expr { $$ = new ExprOperationNode($1, ">=", $3); }
-    | expr EQ expr { $$ = new ExprOperationNode($1, "==", $3); }
-    | expr DIFF expr { $$ = new ExprOperationNode($1, "!=", $3); }
-    | expr AND expr { $$ = new ExprOperationNode($1, "&&", $3); }
-    | expr OR expr { $$ = new ExprOperationNode($1, "||", $3); }
+    | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
+    | expr MINUS expr { $$ = new ExprOperationNode($1, BinOp::MINUS, $3); }
+    | expr STAR expr { $$ = new ExprOperationNode($1, BinOp::TIMES, $3); }
+    | expr SLASH expr { $$ = new ExprOperationNode($1, BinOp::DIV, $3); }
+    | expr MOD expr { $$ = new ExprOperationNode($1, BinOp::MOD, $3); }
+    | expr LT expr { $$ = new ExprOperationNode($1, BinOp::LT, $3); }
+    | expr LTEQ expr { $$ = new ExprOperationNode($1, BinOp::LTEQ, $3); }
+    | expr GT expr { $$ = new ExprOperationNode($1, BinOp::GT, $3); }
+    | expr GTEQ expr { $$ = new ExprOperationNode($1, BinOp::GTEQ, $3); }
+    | expr EQ expr { $$ = new ExprOperationNode($1, BinOp::EQ, $3); }
+    | expr DIFF expr { $$ = new ExprOperationNode($1, BinOp::DIFF, $3); }
+    | expr AND expr { $$ = new ExprOperationNode($1, BinOp::AND, $3); }
+    | expr OR expr { $$ = new ExprOperationNode($1, BinOp::OR, $3); }
     | LPAREN expr RPAREN { $$ = $2; }
     ;
 

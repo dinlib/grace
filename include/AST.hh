@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "Operators.hh"
 
 using namespace llvm;
 
@@ -32,7 +33,7 @@ public:
 
     virtual void dumpAST(std::ostream &os, unsigned level) const = 0;
 
-    virtual Value *codegen(Context &C) { return NULL; }
+    virtual Value *codegen(Context &C) = 0;
 };
 
 class StmtNode : public Node {
@@ -80,7 +81,7 @@ public:
         os << std::endl << NestedLevel(level) << ")" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class ArrayAssignNode : public AssignNode {
@@ -103,7 +104,7 @@ public:
         os << NestedLevel(level + 1) << "]" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class LiteralIntNode : public LiteralNode {
@@ -129,7 +130,7 @@ public:
         os << NestedLevel(level) << "(literal value: " << str << ")";
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class LiteralBoolNode : public LiteralNode {
@@ -180,7 +181,7 @@ public:
         os << ")" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class VarDeclNodeListStmt : public StmtNode {
@@ -191,6 +192,8 @@ public:
         for (const auto &varDecl : varDeclList)
             varDecl->dumpAST(os, level);
     }
+
+    Value *codegen(Context &C) override;
 };
 
 class VarInitNode : public StmtNode {
@@ -209,7 +212,7 @@ public:
            << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 
@@ -268,6 +271,8 @@ public:
     void dumpAST(std::ostream &os, unsigned level) const override {
         os << NestedLevel(level) << "(var " << id << " )" << std::endl;
     }
+
+    Value *codegen(Context &C) override;
 };
 
 class ExprNegativeNode : public ExprNode {
@@ -281,23 +286,27 @@ public:
         expr->dumpAST(os, level + 1);
         os << ")" << std::endl;
     }
+
+    Value *codegen(Context &C) override;
 };
 
 class ExprOperationNode : public ExprNode {
     ExprNode *expr1, *expr2;
-    std::string exprOperator;
+    BinOp Op;
 
 public:
-    ExprOperationNode(ExprNode *expr1, std::string exprOperator, ExprNode *expr2)
-            : expr1(expr1), exprOperator(exprOperator), expr2(expr2) {}
+    ExprOperationNode(ExprNode *expr1, BinOp Op, ExprNode *expr2)
+            : expr1(expr1), Op(Op), expr2(expr2) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {
         os << NestedLevel(level) << "(expr" << std::endl;
         expr1->dumpAST(os, level + 1);
-        os << exprOperator << std::endl;
+//        os << Op << std::endl;
         expr2->dumpAST(os, level + 1);
         os << NestedLevel(level) << ")" << std::endl;
     }
+
+    Value *codegen(Context &C) override;
 };
 
 class WhileNode : public StmtNode {
@@ -316,7 +325,7 @@ public:
         os << NestedLevel(level) << ")" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class ForNode : public StmtNode {
@@ -342,7 +351,7 @@ public:
         os << NestedLevel(level) << ")" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class ReturnNode : public StmtNode {
@@ -374,7 +383,7 @@ public:
         os << NestedLevel(level) << "(stop)" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };
 
 class SkipNode : public StmtNode {
@@ -385,5 +394,5 @@ public:
         os << NestedLevel(level) << "(skip)" << std::endl;
     }
 
-    // Value *codegen(Context &C) override;
+    Value *codegen(Context &C) override;
 };

@@ -3,6 +3,7 @@
 #include <list>
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include "Log.hh"
 
 using namespace llvm;
 
@@ -10,11 +11,15 @@ class Context {
     LLVMContext TheContext;
     IRBuilder<> TheBuilder;
     Module TheModule;
-
-    std::list<std::map<std::string, Value *>> NamedValues;
+    std::list<std::map<std::string, AllocaInst *>> NamedValues;
 
 public:
-    Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {}
+    Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
+        ExpectReturn = false;
+        ReturnFound = false;
+
+        enterScope();
+    }
 
     Module &getModule() { return TheModule; }
 
@@ -30,7 +35,9 @@ public:
 
     void leaveScope();
 
-    void insertNamedValueIntoScope(const std::string &Name, Value *V);
+    void insertNamedValueIntoScope(const std::string &Name, AllocaInst *V);
 
-    Value *getNamedValueInScope(std::string &Name);
+    AllocaInst *getNamedValueInScope(std::string &Name);
+
+    bool ExpectReturn, ReturnFound;
 };
