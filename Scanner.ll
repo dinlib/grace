@@ -35,6 +35,7 @@ loc.step();
 %}
 
 {blank}+ loc.step();
+"//".* loc.step();
 [\n]+ loc.lines(yyleng); loc.step();
 
 \"([^\\\"]|\\.)*\" return yy::parser::make_STRING_LITERAL(yytext, loc);
@@ -59,6 +60,8 @@ loc.step();
 ">=" return yy::parser::make_GTEQ(loc);
 "," return yy::parser::make_COMMA(loc);
 "\"" return yy::parser::make_QMARK(loc);
+"||" return yy::parser::make_OR(loc);
+"&&" return yy::parser::make_AND(loc);
 
 "for" return yy::parser::make_FOR(loc);
 "if" return yy::parser::make_IF(loc);

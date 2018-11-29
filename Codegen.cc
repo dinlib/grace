@@ -1,5 +1,6 @@
 #include <AST.hh>
 #include "llvm/IR/Verifier.h"
+#include <iostream>
 
 using namespace llvm;
 
@@ -90,7 +91,7 @@ Value *FuncDeclNode::codegen(Context &C) {
     ArgsType.reserve(Args.size());
 
     for (auto &Arg : Args)
-        ArgsType.push_back(C.getLLVMType(Arg.second));
+        ArgsType.push_back(C.getLLVMType(std::get<1>(Arg)));
 
     // Create function signature.
     FunctionType *FT =
@@ -101,7 +102,7 @@ Value *FuncDeclNode::codegen(Context &C) {
     // set args
     unsigned Idx = 0;
     for (auto &Arg : F->args())
-        Arg.setName(Args[Idx++].first);
+        Arg.setName(std::get<0>(Args[Idx++]));
 
     BasicBlock *BB = BasicBlock::Create(C.getContext(), "entry", F);
     C.getBuilder().SetInsertPoint(BB);
@@ -129,20 +130,20 @@ Value *FuncDeclNode::codegen(Context &C) {
 }
 
 Value *VarDeclNode::codegen(Context &C) {
-    if (C.getNamedValueInScope(id)) {
-        Log::error(0, 0) << "variable " << id << " already declared.\n";
+    if (C.getNamedValueInScope(Id)) {
+        Log::error(0, 0) << "variable " << Id << " already declared.\n";
         return nullptr;
     }
 
     Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
 
-    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), id, C.getLLVMType(type));
+    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id, C.getLLVMType(Type));
 
-    if (assign) {
-        assign->codegen(C);
+    if (Assign) {
+        Assign->codegen(C);
     }
 
-    C.insertNamedValueIntoScope(id, Alloca);
+    C.insertNamedValueIntoScope(Id, Alloca);
 
     return nullptr;
 }
@@ -189,11 +190,6 @@ Value *ExprIdentifierNode::codegen(Context &C) {
     return C.getBuilder().CreateLoad(Alloca, id);
 }
 
-Value *VarInitNode::codegen(Context &C) {
-    std::cout << "VarInitNode unimplemented" << std::endl;
-    return nullptr;
-}
-
 Value *LiteralStringNode::codegen(Context &C) {
     std::cout << "LiteralStringNode unimplemented" << std::endl;
     return nullptr;
@@ -205,7 +201,7 @@ Value *ArrayAssignNode::codegen(Context &C) {
 }
 
 Value *AssignSimpleNode::codegen(Context &C) {
-    AllocaInst *Alloca = C.getNamedValueInScope(id);
+    AllocaInst *Alloca = C.getNamedValueInScope(Id);
     if (!Alloca)
         return nullptr;
 
@@ -229,18 +225,18 @@ Value *ExprNegativeNode::codegen(Context &C) {
 }
 
 Value *ExprOperationNode::codegen(Context &C) {
-    Value *LHS = expr1->codegen(C);
-    Value *RHS = expr2->codegen(C);
+    Value *LHSV = LHS->codegen(C);
+    Value *RHSV = RHS->codegen(C);
 
     switch (Op) {
         case BinOp::PLUS:
-            return C.getBuilder().CreateAdd(LHS, RHS, "addtmp");
+            return C.getBuilder().CreateAdd(LHSV, RHSV, "addtmp");
         case BinOp::MINUS:
-            return C.getBuilder().CreateSub(LHS, RHS, "subtmp");
+            return C.getBuilder().CreateSub(LHSV, RHSV, "subtmp");
         case BinOp::TIMES:
-            return C.getBuilder().CreateMul(LHS, RHS, "multmp");
+            return C.getBuilder().CreateMul(LHSV, RHSV, "multmp");
         case BinOp::DIV:
-            return C.getBuilder().CreateFDiv(LHS, RHS, "divtmp");
+            return C.getBuilder().CreateFDiv(LHSV, RHSV, "divtmp");
         case BinOp::MOD:
             break;
         case BinOp::LT:
@@ -263,3 +259,28 @@ Value *ExprOperationNode::codegen(Context &C) {
 
     return nullptr;
 }
+
+Value *CallExprNode::codegen(Context &C) {
+
+    Function *CalleeF = C.getModule().getFunction(Callee);
+    if (!CalleeF) {
+        Log::error(0, 0) << "function " << Callee << " not found.\n";
+        return nullptr;
+    }
+
+    if (CalleeF->arg_size() != Args.size()) {
+        Log::error(0, 0) << "incorrect number of arguments passed to function " << Callee << "\n";
+        return nullptr;
+    }
+
+    std::vector<Value *> ArgsV;
+    for (auto &Arg : Args) {
+        ArgsV.push_back(Arg->codegen(C));
+        if (!ArgsV.back())
+            return nullptr;
+    }
+
+    return C.getBuilder().CreateCall(CalleeF, ArgsV, "calltmp");
+
+}
+
