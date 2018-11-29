@@ -204,7 +204,12 @@ for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN Body { $$ = new ForNode
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
 
-assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }; 
+assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }
+            | IDENTIFIER PLUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }
+            | IDENTIFIER MINUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::MINUS, $4); }
+            | IDENTIFIER STAR ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::TIMES, $4); }
+            | IDENTIFIER SLASH ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::DIV, $4); }
+            ;
 
 %%
 

@@ -84,6 +84,24 @@ public:
     Value *codegen(Context &C) override;
 };
 
+class CompoundAssignNode : public AssignNode {
+public:
+    ExprNode *expr;
+    BinOp Op;
+
+    CompoundAssignNode(const std::string &id, BinOp Op, ExprNode *expr)
+        : AssignNode(id), Op(Op), expr(expr) {}
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
+        os << NestedLevel(level) << "(assing id: " << id
+            << "; value: " << std::endl;
+//        os << Op << std::endl;
+        expr->dumpAST(os, level + 1);
+    }
+
+    Value *codegen(Context &C) override;
+};
+
 class ArrayAssignNode : public AssignNode {
 public:
     LiteralNodeList *literalList;
