@@ -9,7 +9,7 @@
 %code requires {
   #include <string>
   #include "AST.hh"
-  #include "Operators.hh"
+  #include "BinOp.hh"
   class Driver;
 }
 
@@ -88,7 +88,7 @@
 %token <std::string> STRING_LITERAL
 
 %type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt assign_stmt
-%type <BlockNode*> stmts Body
+%type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
 %type <std::string> data_type
@@ -123,14 +123,14 @@ stmt: var_decl { $$ = $1; }
     | assign_stmt { $$ = $1; }
     ;
 
-if_then_else_stmt: IF LPAREN expr RPAREN Body { $$ = new IfThenElseNode($3, $5, NULL); }
-				| IF LPAREN expr RPAREN Body ELSE Body { $$ = new IfThenElseNode($3, $5, $7); }
+if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
+				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode($3, $5, $7); }
         ;
 
 var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
                                                         for (auto spec : *$2) {
                                                           $$->varDeclList.push_back(
-                                                            new VarDeclNode(spec->id, spec->size, spec->assign, $4)
+                                                            new VarDeclNode(spec->Id, spec->Size, spec->Assign, $4)
                                                           );
                                                           delete spec;
                                                         }
@@ -172,10 +172,10 @@ data_type: TYPE_INT { $$ = "type_int"; }
     | TYPE_BOOL { $$ = "type_bool"; }
     ;
 
-func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type Body { $$ = new FuncDeclNode($2, $6, $7); };
-proc_decl: DEF IDENTIFIER LPAREN RPAREN Body { $$ = new FuncDeclNode($2, $5); };
+func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, $7); };
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
 
-Body: LBRACE stmts RBRACE { $$ = $2; }
+block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
@@ -195,11 +195,12 @@ expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | expr AND expr { $$ = new ExprOperationNode($1, BinOp::AND, $3); }
     | expr OR expr { $$ = new ExprOperationNode($1, BinOp::OR, $3); }
     | LPAREN expr RPAREN { $$ = $2; }
+    | IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, std::vector<ExprNode *>()); }
     ;
 
-while_stmt: WHILE LPAREN expr RPAREN Body { $$ = new WhileNode($3, $5); };
+while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
 
-for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN Body { $$ = new ForNode($3, $4, $6, $8); };
+for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNode($3, $4, $6, $8); };
 
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
