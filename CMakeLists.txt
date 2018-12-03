@@ -28,7 +28,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(grace 
                 ${BISON_GraceParser_OUTPUTS}
                 ${FLEX_GraceScanner_OUTPUTS}
-        main.cc
+          main.cc
                 Driver.cc 
                 Dump.cc
         Codegen.cc Context.cc include/BinOp.hh)

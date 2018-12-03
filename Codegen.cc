@@ -1,5 +1,5 @@
-#include <AST.hh>
 #include "llvm/IR/Verifier.h"
+#include <AST.hh>
 #include <iostream>
 
 using namespace llvm;
@@ -17,9 +17,11 @@ Value *LogErrorV(const char *Str) {
 
 /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
 /// the function.  This is used for mutable variables etc.
-static AllocaInst *
-CreateEntryBlockAlloca(Function *TheFunction, LLVMContext &TheContext, const std::string &Name, Type *T) {
-    IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
+                                          LLVMContext &TheContext,
+                                          const std::string &Name, Type *T) {
+    IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
+                     TheFunction->getEntryBlock().begin());
     return TmpB.CreateAlloca(T, nullptr, Name.c_str());
 }
 
@@ -88,10 +90,10 @@ Value *FuncDeclNode::codegen(Context &C) {
 
     // Create vector with llvm types for args.
     std::vector<Type *> ArgsType;
-    ArgsType.reserve(Args.size());
+    ArgsType.reserve(Args->size());
+    for (auto Arg : *Args)
+        ArgsType.push_back(C.getLLVMType(Arg->Type));
 
-    for (auto &Arg : Args)
-        ArgsType.push_back(C.getLLVMType(std::get<1>(Arg)));
 
     // Create function signature.
     FunctionType *FT =
@@ -102,14 +104,15 @@ Value *FuncDeclNode::codegen(Context &C) {
     // set args
     unsigned Idx = 0;
     for (auto &Arg : F->args())
-        Arg.setName(std::get<0>(Args[Idx++]));
+        Arg.setName((*Args)[Idx++]->Id);
 
     BasicBlock *BB = BasicBlock::Create(C.getContext(), "entry", F);
     C.getBuilder().SetInsertPoint(BB);
 
     // insert args into scope
     for (auto &Arg : F->args()) {
-        AllocaInst *Alloca = CreateEntryBlockAlloca(F, C.getContext(), Arg.getName(), Arg.getType());
+        AllocaInst *Alloca =
+                CreateEntryBlockAlloca(F, C.getContext(), Arg.getName(), Arg.getType());
 
         C.getBuilder().CreateStore(&Arg, Alloca);
 
@@ -122,7 +125,8 @@ Value *FuncDeclNode::codegen(Context &C) {
     Body->codegen(C);
 
     if (!C.ReturnFound) {
-        Log::warning(0, 0) << "expected a return statement inside function body, but none was found.\n";
+        Log::warning(0, 0) << "expected a return statement inside function body, "
+                              "but none was found.\n";
         return nullptr;
     }
 
@@ -137,7 +141,8 @@ Value *VarDeclNode::codegen(Context &C) {
 
     Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
 
-    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id, C.getLLVMType(Type));
+    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id,
+                                                C.getLLVMType(Type));
 
     if (Assign) {
         Assign->codegen(C);
@@ -158,7 +163,6 @@ Value *ReturnNode::codegen(Context &C) {
 
     return Builder.CreateRetVoid();
 }
-
 
 Value *SkipNode::codegen(Context &C) {
     std::cout << "SkipNode unimplemented" << std::endl;
@@ -261,26 +265,28 @@ Value *ExprOperationNode::codegen(Context &C) {
 }
 
 Value *CallExprNode::codegen(Context &C) {
-
     Function *CalleeF = C.getModule().getFunction(Callee);
     if (!CalleeF) {
         Log::error(0, 0) << "function " << Callee << " not found.\n";
         return nullptr;
     }
 
-    if (CalleeF->arg_size() != Args.size()) {
-        Log::error(0, 0) << "incorrect number of arguments passed to function " << Callee << "\n";
+    if (CalleeF->arg_size() != Args->size()) {
+        Log::error(0, 0) << "incorrect number of arguments passed to function "
+                         << Callee << "\n";
         return nullptr;
     }
 
     std::vector<Value *> ArgsV;
-    for (auto &Arg : Args) {
+    for (auto Arg : *Args) {
         ArgsV.push_back(Arg->codegen(C));
         if (!ArgsV.back())
             return nullptr;
     }
 
     return C.getBuilder().CreateCall(CalleeF, ArgsV, "calltmp");
-
 }
 
+Value *ProcDeclNode::codegen(Context &C) {
+    return nullptr;
+}

@@ -1,11 +1,11 @@
 #pragma once
 
+#include "BinOp.hh"
 #include "Context.hh"
 #include "llvm/IR/Module.h"
 #include <fstream>
 #include <string>
 #include <vector>
-#include "BinOp.hh"
 
 using namespace llvm;
 
@@ -22,10 +22,26 @@ class SpecVar;
 
 class LiteralNode;
 
+class ExprNode;
+
 typedef std::vector<StmtNode *> StmtList;
 typedef std::vector<VarDeclNode *> VarDeclNodeList;
 typedef std::vector<SpecVar *> SpecVarList;
 typedef std::vector<LiteralNode *> LiteralNodeList;
+
+class Param {
+public:
+    std::string Id;
+    std::string Type;
+    bool IsArray;
+
+    Param(const std::string &Id, const std::string &Type, bool IsArray) : Id(Id), Type(Type),
+                                                                          IsArray(IsArray) {}
+};
+
+typedef std::vector<Param *> ParamList;
+
+typedef std::vector<ExprNode *> ExprList;
 
 class Node {
 public:
@@ -199,20 +215,35 @@ public:
 class FuncDeclNode : public StmtNode {
     std::string Name;
     std::string ReturnType;
-    std::vector<std::tuple<std::string, std::string, bool>> Args; // <id, type, is_array>
+    ParamList *Args;
     BlockNode *Body;
 
 public:
-    FuncDeclNode(std::string Name, std::string ReturnType,
-                 BlockNode *Body)
-            : Name(std::move(Name)), ReturnType(std::move(ReturnType)), Body(Body) {}
-
-    FuncDeclNode(std::string Name, BlockNode *Body)
-            : Name(std::move(Name)), ReturnType("void"), Body(Body) {}
+    FuncDeclNode(std::string &Name,
+                 std::string &ReturnType,
+                 ParamList *Args, BlockNode *Body)
+            : Name(Name), ReturnType(ReturnType), Args(Args), Body(Body) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {
         os << NestedLevel(level) << "(function Name: " << Name
            << "; ReturnType: " << ReturnType << std::endl;
+        Body->dumpAST(os, level + 1);
+        os << NestedLevel(level) << ")" << std::endl;
+    }
+
+    Value *codegen(Context &C) override;
+};
+
+class ProcDeclNode : public StmtNode {
+    std::string Name;
+    ParamList *Args;
+    BlockNode *Body;
+public:
+    ProcDeclNode(const std::string &Name, ParamList *Args, BlockNode *Body) : Name(Name), Args(Args), Body(Body) {}
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
+        os << NestedLevel(level) << "(function Name: " << Name
+           << "; ReturnType: " << "void" << std::endl;
         Body->dumpAST(os, level + 1);
         os << NestedLevel(level) << ")" << std::endl;
     }
@@ -281,7 +312,7 @@ public:
     void dumpAST(std::ostream &os, unsigned level) const override {
         os << NestedLevel(level) << "(expr" << std::endl;
         LHS->dumpAST(os, level + 1);
-//        os << Op << std::endl;
+        //        os << Op << std::endl;
         RHS->dumpAST(os, level + 1);
         os << NestedLevel(level) << ")" << std::endl;
     }
@@ -291,10 +322,11 @@ public:
 
 class CallExprNode : public ExprNode {
     std::string Callee;
-    std::vector<ExprNode *> Args;
+    ExprList *Args;
 
 public:
-    CallExprNode(const std::string &Callee, std::vector<ExprNode *> Args) : Callee(Callee), Args(std::move(Args)) {}
+    CallExprNode(const std::string &Callee, ExprList *Args)
+            : Callee(Callee), Args(Args) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {
         // TODO: implement
