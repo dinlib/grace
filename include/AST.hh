@@ -93,7 +93,7 @@ public:
         : AssignNode(id), Op(Op), expr(expr) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {
-        os << NestedLevel(level) << "(assing id: " << id
+        os << NestedLevel(level) << "(assing id: " << Id
             << "; value: " << std::endl;
 //        os << Op << std::endl;
         expr->dumpAST(os, level + 1);

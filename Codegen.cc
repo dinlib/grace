@@ -284,3 +284,31 @@ Value *CallExprNode::codegen(Context &C) {
 
 }
 
+Value *CompoundAssignNode::codegen(Context &C) {
+    //std::cout << "CompoundAssigmentNode unimplemented" << std::endl;
+    //return nullptr;
+    AllocaInst *Alloca = C.getNamedValueInScope(Id);
+    if(!Alloca)
+        Log::error(0, 0) << "variable " << Id << " not declared in this scope.\n";
+        return nullptr;
+    
+    Value *Store = expr->codegen(C);
+    Value *Result;
+
+    switch(Op) {
+        case BinOp::PLUS:
+            Result = C.getBuilder().CreateAdd(Store, Alloca, "addtmp");
+            C.getBuilder().CreateStore(Result, Alloca);
+        case BinOp::MINUS:
+            Result = C.getBuilder().CreateSub(Store, Alloca, "subtmp");
+            C.getBuilder().CreateStore(Result, Alloca);
+        case BinOp::TIMES:
+            Result = C.getBuilder().CreateMul(Store, Alloca, "multmp");
+            C.getBuilder().CreateStore(Result, Alloca);
+        case BinOp::DIV:
+            Result = C.getBuilder().CreateFDiv(Store, Alloca, "divtmp");
+            C.getBuilder().CreateStore(Result, Alloca);
+    }
+     
+}
+

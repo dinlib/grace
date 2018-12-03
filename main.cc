@@ -20,10 +20,11 @@ int main(int argc, char **argv) {
             res = 1;
         }
     }
-
+    std::cout << "Saiu da árvore\n";
     Context C;
+    std::cout << "Gerou contexto\n";
     drv.program->codegen(C);
-
+    std::cout << "Gerou código\n";
     if (drv.dump_ir) {
         C.dumpIR();
     }
