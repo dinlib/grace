@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <llvm/IR/PassManager.h>
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "Log.hh"
@@ -11,14 +12,20 @@ class Context {
     LLVMContext TheContext;
     IRBuilder<> TheBuilder;
     Module TheModule;
+
+//    std::unique_ptr<FunctionPassManager> FPM;
+
     std::list<std::map<std::string, AllocaInst *>> NamedValues;
 
 public:
     Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
         ExpectReturn = false;
         ReturnFound = false;
+        IsInsideLoop = false;
 
         enterScope();
+
+        initializePassManager();
     }
 
     Module &getModule() { return TheModule; }
@@ -39,5 +46,12 @@ public:
 
     AllocaInst *getNamedValueInScope(std::string &Name);
 
-    bool ExpectReturn, ReturnFound;
+    bool ExpectReturn;
+    bool ReturnFound;
+    bool IsInsideLoop;
+
+private:
+    void initializePassManager() {
+
+    }
 };

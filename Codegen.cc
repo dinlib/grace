@@ -1,6 +1,5 @@
 #include "llvm/IR/Verifier.h"
 #include <AST.hh>
-#include <iostream>
 
 using namespace llvm;
 
@@ -88,12 +87,13 @@ Value *FuncDeclNode::codegen(Context &C) {
         return nullptr;
     }
 
+    C.enterScope();
+
     // Create vector with llvm types for args.
     std::vector<Type *> ArgsType;
     ArgsType.reserve(Args->size());
     for (auto Arg : *Args)
         ArgsType.push_back(C.getLLVMType(Arg->Type));
-
 
     // Create function signature.
     FunctionType *FT =
@@ -123,6 +123,8 @@ Value *FuncDeclNode::codegen(Context &C) {
     C.ExpectReturn = true;
     C.ReturnFound = false;
     Body->codegen(C);
+
+    C.leaveScope();
 
     if (!C.ReturnFound) {
         Log::warning(0, 0) << "expected a return statement inside function body, "
@@ -166,32 +168,58 @@ Value *ReturnNode::codegen(Context &C) {
 
 Value *SkipNode::codegen(Context &C) {
     std::cout << "SkipNode unimplemented" << std::endl;
+
+    if (!C.IsInsideLoop)
+        Log::error(0, 0) << "skip command can appear only inside loops.\n";
+
+    // TODO: implement
+
     return nullptr;
 }
 
 Value *StopNode::codegen(Context &C) {
-    std::cout << "StopNode unimplemented" << std::endl;
+    if (!C.IsInsideLoop)
+        Log::error(0, 0) << "stop command can appear only inside loops.\n";
+
+    // TODO: implement
+
     return nullptr;
 }
 
 Value *ForNode::codegen(Context &C) {
     std::cout << "ForNode unimplemented" << std::endl;
+
+    C.IsInsideLoop = true;
+
+    forBlock->codegen(C);
+
+    C.IsInsideLoop = false;
+
     return nullptr;
 }
 
 Value *WhileNode::codegen(Context &C) {
     std::cout << "WhileNode unimplemented" << std::endl;
+
+    // TODO: implement
+
+    C.IsInsideLoop = true;
+
+    Block->codegen(C);
+
+    C.IsInsideLoop = false;
+
     return nullptr;
 }
 
 Value *ExprIdentifierNode::codegen(Context &C) {
-    AllocaInst *Alloca = C.getNamedValueInScope(id);
+    AllocaInst *Alloca = C.getNamedValueInScope(Id);
     if (!Alloca) {
-        Log::error(0, 0) << "variable " << id << " not found.\n";
+        Log::error(0, 0) << "variable " << Id << " not found.\n";
         return nullptr;
     }
 
-    return C.getBuilder().CreateLoad(Alloca, id);
+    return C.getBuilder().CreateLoad(Alloca, Id);
 }
 
 Value *LiteralStringNode::codegen(Context &C) {
@@ -288,5 +316,33 @@ Value *CallExprNode::codegen(Context &C) {
 }
 
 Value *ProcDeclNode::codegen(Context &C) {
+    std::cout << "ProcDeclNode unimplemented" << std::endl;
     return nullptr;
 }
+
+Value *WriteNode::codegen(Context &C) {
+    std::vector<Value *> Values;
+    Values.reserve(Exprs->size());
+
+    for (auto Expr : *Exprs)
+        Values.push_back(Expr->codegen(C));
+
+
+    Function *Printf = C.getModule().getFunction("printf");
+    if (!Printf) {
+        FunctionType *FuncTy = FunctionType::get(IntegerType::get(C.getContext(), 32), true);
+
+        Printf = Function::Create(FuncTy, GlobalValue::ExternalLinkage, "printf", &C.getModule());
+        Printf->setCallingConv(CallingConv::C);
+
+        AttributeList PrintfPAL;
+        Printf->setAttributes(PrintfPAL);
+    }
+
+    C.getBuilder().CreateCall(Printf, Values, "callprintf");
+
+
+    return nullptr;
+}
+
+

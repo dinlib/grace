@@ -65,6 +65,7 @@
   RETURN "return"
   STOP "stop"
   SKIP "skip"
+  WRITE "write"
 ;
 
 //definir precedência
@@ -117,13 +118,14 @@ stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
 stmt: var_decl { $$ = $1; }
     | func_decl { $$ = $1; }
     | proc_decl { $$ = $1; }
-	| if_then_else_stmt { $$ = $1; }
+	  | if_then_else_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
     | for_stmt {$$ = $1; }
     | return_stmt { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
     | assign_stmt { $$ = $1; }
+    | WRITE expr_list SEMICOLON { $$ = new WriteNode($2); }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }

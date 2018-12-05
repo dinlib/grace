@@ -74,6 +74,7 @@ loc.step();
 "return" return yy::parser::make_RETURN(loc);
 "stop" return yy::parser::make_STOP(loc);
 "skip" return yy::parser::make_SKIP(loc);
+"write" return yy::parser::make_WRITE(loc);
 
 "int" return yy::parser::make_TYPE_INT("type_int", loc);
 "string" return yy::parser::make_TYPE_STRING("type_string", loc);

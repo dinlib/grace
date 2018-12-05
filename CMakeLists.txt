@@ -31,7 +31,7 @@ add_executable(grace
           main.cc
                 Driver.cc 
                 Dump.cc
-        Codegen.cc Context.cc include/BinOp.hh)
+        Codegen.cc Context.cc include/BinOp.hh include/location.hh)
 
 llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES native)
 

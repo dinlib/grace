@@ -9,5 +9,7 @@ def main(): int {
 
     z = sum(x, y);
 
+    write z;
+
     return 0;
 }
