@@ -276,7 +276,7 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::TIMES:
     return C.getBuilder().CreateMul(LHSV, RHSV, "multmp");
   case BinOp::DIV:
-    return C.getBuilder().CreateFDiv(LHSV, RHSV, "divtmp");
+    return C.getBuilder().CreateUDiv(LHSV, RHSV, "divtmp");
   case BinOp::MOD:
     break;
   case BinOp::LT:
@@ -360,26 +360,42 @@ Value *CompoundAssignNode::codegen(Context &C) {
   // std::cout << "CompoundAssigmentNode unimplemented" << std::endl;
   // return nullptr;
   AllocaInst *Alloca = C.getNamedValueInScope(Id);
+
   if (!Alloca) {
     Log::error(0, 0) << "variable " << Id << " not declared in this scope.\n";
     return nullptr;
   }
 
   Value *Store = expr->codegen(C);
-  Value *Result;
+
+  Type *AllocaTy = Alloca->getAllocatedType();
+  Type *StoreTy = Store->getType();
+
+  if (!C.typeCheck(AllocaTy, StoreTy)) {
+    Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
+                     << "', expected '" << C.getType(AllocaTy) << "'\n";
+    return nullptr;
+  }
+
+  Value *AllocaValue = C.getBuilder().CreateLoad(Alloca, Id);
+  Value *Result = nullptr;
 
   switch (Op) {
   case BinOp::PLUS:
-    Result = C.getBuilder().CreateAdd(Store, Alloca, "addtmp");
+    Result = C.getBuilder().CreateAdd(Store, AllocaValue, "addtmp");
     C.getBuilder().CreateStore(Result, Alloca);
+    break;
   case BinOp::MINUS:
-    Result = C.getBuilder().CreateSub(Store, Alloca, "subtmp");
+    Result = C.getBuilder().CreateSub(Store, AllocaValue, "subtmp");
     C.getBuilder().CreateStore(Result, Alloca);
+    break;
   case BinOp::TIMES:
-    Result = C.getBuilder().CreateMul(Store, Alloca, "multmp");
+    Result = C.getBuilder().CreateMul(Store, AllocaValue, "multmp");
     C.getBuilder().CreateStore(Result, Alloca);
+    break;
   case BinOp::DIV:
-    Result = C.getBuilder().CreateFDiv(Store, Alloca, "divtmp");
+    Result = C.getBuilder().CreateUDiv(Store, AllocaValue, "divtmp");
     C.getBuilder().CreateStore(Result, Alloca);
-  }
+    break;
+  } 
 }
