@@ -65,6 +65,7 @@
   RETURN "return"
   STOP "stop"
   SKIP "skip"
+  WRITE "write"
 ;
 
 //definir precedência
@@ -97,6 +98,9 @@
 %type <ExprNode *> expr
 %type <LiteralNode *> literal
 %type <LiteralNodeList *> literal_list
+%type <ParamList*> param_list
+%type <Param*> param
+%type <ExprList*> expr_list
 
 
 %printer { yyoutput << $$; } <*>;
@@ -114,13 +118,15 @@ stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
 stmt: var_decl { $$ = $1; }
     | func_decl { $$ = $1; }
     | proc_decl { $$ = $1; }
-	| if_then_else_stmt { $$ = $1; }
+	  | if_then_else_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
     | for_stmt {$$ = $1; }
     | return_stmt { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
     | assign_stmt { $$ = $1; }
+    | WRITE STRING_LITERAL SEMICOLON { $$ = new WriteNode($2, NULL); }
+    | WRITE STRING_LITERAL MOD expr_list SEMICOLON { $$ = new WriteNode($2, $4); }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
@@ -172,8 +178,20 @@ data_type: TYPE_INT { $$ = "type_int"; }
     | TYPE_BOOL { $$ = "type_bool"; }
     ;
 
-func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, $7); };
-proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new FuncDeclNode($2, $5); };
+func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, new ParamList(), $7); }
+    | DEF IDENTIFIER LPAREN param_list RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $7, $4, $8); }
+    ;
+
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new ProcDeclNode($2, new ParamList(), $5); };
+  | DEF IDENTIFIER LPAREN param_list RPAREN block { $$ = new ProcDeclNode($2, $4, $6); };
+
+param_list: param { $$ = new ParamList(); $$->push_back($1); }
+  | param_list COMMA param { $1->push_back($3); $$ = $1; }
+  ;
+
+param: IDENTIFIER COLON data_type { $$ = new Param($1, $3, false); }
+  | IDENTIFIER LBRACKET RBRACKET COLON data_type { $$ = new Param($1, $5, true); }
+  ;
 
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
@@ -195,7 +213,12 @@ expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | expr AND expr { $$ = new ExprOperationNode($1, BinOp::AND, $3); }
     | expr OR expr { $$ = new ExprOperationNode($1, BinOp::OR, $3); }
     | LPAREN expr RPAREN { $$ = $2; }
-    | IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, std::vector<ExprNode *>()); }
+    | IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, new ExprList()); }
+    | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode($1, $3); }
+    ;
+
+expr_list: expr { $$ = new ExprList(); $$->push_back($1); }
+    | expr_list COMMA expr { $1->push_back($3); $$ = $1; }
     ;
 
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };

@@ -6,19 +6,19 @@
 #define GRACE_OPERATORS_HH
 
 enum class BinOp {
-    PLUS,
-    MINUS,
-    TIMES,
-    DIV,
-    MOD,
-    LT,
-    LTEQ,
-    GT,
-    GTEQ,
-    EQ,
-    DIFF,
-    AND,
-    OR,
+  PLUS,
+  MINUS,
+  TIMES,
+  DIV,
+  MOD,
+  LT,
+  LTEQ,
+  GT,
+  GTEQ,
+  EQ,
+  DIFF,
+  AND,
+  OR,
 };
 
-#endif //GRACE_OPERATORS_HH
+#endif // GRACE_OPERATORS_HH

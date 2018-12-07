@@ -1,43 +1,62 @@
 #pragma once
 
-#include <list>
+#include "Log.hh"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
-#include "Log.hh"
+#include <list>
+#include <llvm/IR/PassManager.h>
 
 using namespace llvm;
 
+static const int INT_SIZE = 32;
+static const int BOOL_SIZE = 1;
+
 class Context {
-    LLVMContext TheContext;
-    IRBuilder<> TheBuilder;
-    Module TheModule;
-    std::list<std::map<std::string, AllocaInst *>> NamedValues;
+  LLVMContext TheContext;
+  IRBuilder<> TheBuilder;
+  Module TheModule;
+
+  //    std::unique_ptr<FunctionPassManager> FPM;
+
+  std::list<std::map<std::string, AllocaInst *>> NamedValues;
 
 public:
-    Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
-        ExpectReturn = false;
-        ReturnFound = false;
+  Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
+    ExpectReturn = false;
+    ReturnFound = false;
+    IsInsideLoop = false;
 
-        enterScope();
-    }
+    enterScope();
 
-    Module &getModule() { return TheModule; }
+    initializePassManager();
+  }
 
-    LLVMContext &getContext() { return TheModule.getContext(); }
+  Module &getModule() { return TheModule; }
 
-    IRBuilder<> &getBuilder() { return TheBuilder; }
+  LLVMContext &getContext() { return TheModule.getContext(); }
 
-    Type *getLLVMType(std::string &TypeRepresentation);
+  IRBuilder<> &getBuilder() { return TheBuilder; }
 
-    void dumpIR() const { TheModule.print(errs(), nullptr); }
+  Type *getLLVMType(std::string &TypeRepresentation);
 
-    void enterScope();
+  std::string getType(Type *T);
 
-    void leaveScope();
+  bool typeCheck(Type *A, Type *B);
 
-    void insertNamedValueIntoScope(const std::string &Name, AllocaInst *V);
+  void dumpIR() const { TheModule.print(errs(), nullptr); }
 
-    AllocaInst *getNamedValueInScope(std::string &Name);
+  void enterScope();
 
-    bool ExpectReturn, ReturnFound;
+  void leaveScope();
+
+  void insertNamedValueIntoScope(const std::string &Name, AllocaInst *V);
+
+  AllocaInst *getNamedValueInScope(std::string &Name);
+
+  bool ExpectReturn;
+  bool ReturnFound;
+  bool IsInsideLoop;
+
+private:
+  void initializePassManager() {}
 };

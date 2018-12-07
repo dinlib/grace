@@ -1,13 +1,16 @@
 
-def sum(x, y: int): int {
-    return x + y;
+def sum(x: int, y: int): int {
+     return x + y;
 }
 
 def main(): int {
     var x = 4, y = 30: int;
-    var z: int;
+    var z = 2: int;
 
-    z = sum(x, y);
+
+    z += sum(x, y);
+
+    write "%d\n" % z;
 
     return 0;
 }

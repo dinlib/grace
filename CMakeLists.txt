@@ -28,10 +28,10 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(grace 
                 ${BISON_GraceParser_OUTPUTS}
                 ${FLEX_GraceScanner_OUTPUTS}
-        main.cc
+          main.cc
                 Driver.cc 
                 Dump.cc
-        Codegen.cc Context.cc include/BinOp.hh)
+        Codegen.cc Context.cc include/BinOp.hh include/location.hh Error.cc include/Error.hh)
 
 llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES native)
 
