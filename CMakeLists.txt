@@ -33,6 +33,4 @@ add_executable(grace
                 Dump.cc
         Codegen.cc Context.cc include/BinOp.hh include/location.hh Error.cc include/Error.hh)
 
-llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES native)
-
-target_link_libraries(grace ${REQ_LLVM_LIBRARIES})
+target_link_libraries(grace PUBLIC "LLVM" ${llvm_libs} )

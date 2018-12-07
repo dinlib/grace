@@ -66,6 +66,7 @@
   STOP "stop"
   SKIP "skip"
   WRITE "write"
+  READ "read"
 ;
 
 //definir precedência
@@ -88,7 +89,8 @@
 %token <std::string> TYPE_BOOL "type_bool"
 %token <std::string> STRING_LITERAL
 
-%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt assign_stmt
+%type <StmtNode*> stmt func_decl proc_decl if_then_else_stmt while_stmt for_stmt return_stmt
+%type <AssignNode *> assign_stmt assign_expr
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
@@ -96,6 +98,7 @@
 %type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
 %type <SpecVarList *> spec_var_list
 %type <ExprNode *> expr
+%type <CallExprNode *> call_expr
 %type <LiteralNode *> literal
 %type <LiteralNodeList *> literal_list
 %type <ParamList*> param_list
@@ -118,15 +121,16 @@ stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
 stmt: var_decl { $$ = $1; }
     | func_decl { $$ = $1; }
     | proc_decl { $$ = $1; }
-	  | if_then_else_stmt { $$ = $1; }
+	| if_then_else_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
     | for_stmt {$$ = $1; }
     | return_stmt { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
     | assign_stmt { $$ = $1; }
-    | WRITE STRING_LITERAL SEMICOLON { $$ = new WriteNode($2, NULL); }
-    | WRITE STRING_LITERAL MOD expr_list SEMICOLON { $$ = new WriteNode($2, $4); }
+    | WRITE expr_list SEMICOLON { $$ = new WriteNode($2); }
+//    | call_expr SEMICOLON { $$ =  }
+  //  | READ var_expr SEMICOLON { $$ = new ReadNode($2); }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
@@ -136,7 +140,9 @@ if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5,
 var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
                                                         for (auto spec : *$2) {
                                                           $$->varDeclList.push_back(
-                                                            new VarDeclNode(spec->Id, spec->Size, spec->Assign, $4)
+                                                            (spec->Size > 0) ?
+                                                            new ArrayDeclNode(spec->Id, spec->Assign, $4, spec->Size) :
+                                                            new VarDeclNode(spec->Id, spec->Assign, $4)
                                                           );
                                                           delete spec;
                                                         }
@@ -163,7 +169,7 @@ spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar($1, 0, new Assig
 spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET { $$ = new SpecVar($1, $3, NULL); }
               ;
 
-spec_var_array_init: IDENTIFIER LBRACKET NUMBER RBRACKET ASSIGN LBRACE literal_list RBRACE                                               { $$ = new SpecVar($1, $3, new ArrayAssignNode($1, $7)); };
+spec_var_array_init: IDENTIFIER LBRACKET NUMBER RBRACKET ASSIGN LBRACE literal_list RBRACE { $$ = new SpecVar($1, $3, new ArrayAssignNode($1, $7)); };
 
 literal_list: literal { $$ = new LiteralNodeList(); $$->push_back($1); } 
             | literal_list COMMA literal { $1->push_back($3); $$ = $1; }
@@ -197,6 +203,7 @@ block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
+    | IDENTIFIER LBRACKET expr RBRACKET { $$ = new ArrayAccessExpr($1, $3); }
     | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
@@ -213,22 +220,32 @@ expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | expr AND expr { $$ = new ExprOperationNode($1, BinOp::AND, $3); }
     | expr OR expr { $$ = new ExprOperationNode($1, BinOp::OR, $3); }
     | LPAREN expr RPAREN { $$ = $2; }
-    | IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, new ExprList()); }
-    | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode($1, $3); }
+    | call_expr { $$ = $1; }
     ;
 
 expr_list: expr { $$ = new ExprList(); $$->push_back($1); }
     | expr_list COMMA expr { $1->push_back($3); $$ = $1; }
     ;
 
+//var_expr:
+//        ;
+
+call_expr: IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, new ExprList()); }
+          | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode($1, $3); }
+          ;
+
 while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
 
-for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNode($3, $4, $6, $8); };
+for_stmt: FOR LPAREN assign_expr SEMICOLON expr SEMICOLON assign_expr RPAREN block { $$ = new ForNode($3, $5, $7, $9); };
 
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
 
-assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }; 
+assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignSimpleNode($1, $3); }
+            | IDENTIFIER LBRACKET expr RBRACKET ASSIGN expr { $$= new AssignArrayIdxNode($1, $6, $3); }
+            ;
+
+assign_stmt: assign_expr SEMICOLON { $$ = $1; };
 
 %%
 
