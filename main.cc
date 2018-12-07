@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
     verifyModule(C.getModule());
 
     InitializeAllTargetInfos();
-    InitializeAllTargetInfos();
+    InitializeAllTargets();
     InitializeAllTargetMCs();
     InitializeAllAsmParsers();
     InitializeAllAsmPrinters();
