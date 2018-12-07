@@ -138,12 +138,12 @@ public:
 
 class LiteralStringNode : public LiteralNode {
 public:
-    std::string str;
+    std::string Str;
 
-    LiteralStringNode(const std::string &str) : str(str) {}
+    LiteralStringNode(const std::string &Str) : Str(Str) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {
-        os << NestedLevel(level) << "(literal value: " << str << ")";
+        os << NestedLevel(level) << "(literal value: " << Str << ")";
     }
 
     Value *codegen(Context &C) override;
@@ -432,9 +432,10 @@ public:
 };
 
 class WriteNode : public StmtNode {
+		std::string Format;
     ExprList *Exprs;
 public:
-    WriteNode(ExprList *Exprs) : Exprs(Exprs) {}
+    WriteNode(const std::string &Format, ExprList *Exprs) : Format(Format), Exprs(Exprs) {}
 
     void dumpAST(std::ostream &os, unsigned level) const override {}
 

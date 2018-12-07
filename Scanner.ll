@@ -34,17 +34,35 @@ yy::location &loc = drv.location;
 loc.step();
 %}
 
+"for" return yy::parser::make_FOR(loc);
+"if" return yy::parser::make_IF(loc);
+"else" return yy::parser::make_ELSE(loc);
+"def" return yy::parser::make_DEF(loc);
+"var" return yy::parser::make_VAR(loc);
+"true" return yy::parser::make_BOOL_LITERAL(true, loc);
+"false" return yy::parser::make_BOOL_LITERAL(false, loc);
+"while" return yy::parser::make_WHILE(loc);
+"return" return yy::parser::make_RETURN(loc);
+"stop" return yy::parser::make_STOP(loc);
+"skip" return yy::parser::make_SKIP(loc);
+"write" return yy::parser::make_WRITE(loc);
+
+"int" return yy::parser::make_TYPE_INT("type_int", loc);
+"string" return yy::parser::make_TYPE_STRING("type_string", loc);
+"bool" return yy::parser::make_TYPE_BOOL("type_bool", loc);
+
 {blank}+ loc.step();
 "//".* loc.step();
 [\n]+ loc.lines(yyleng); loc.step();
 
-\"([^\\\"]|\\.)*\" return yy::parser::make_STRING_LITERAL(yytext, loc);
+\"(\\.|[^\\"])*\" return yy::parser::make_STRING_LITERAL(yytext, loc);
 
 ";" return yy::parser::make_SEMICOLON(loc);
 ":" return yy::parser::make_COLON(loc);
 "-" return yy::parser::make_MINUS(loc);
 "+" return yy::parser::make_PLUS(loc);
 "*" return yy::parser::make_STAR(loc);
+"%" return yy::parser::make_MOD(loc);
 "/" return yy::parser::make_SLASH(loc);
 "(" return yy::parser::make_LPAREN(loc);
 ")" return yy::parser::make_RPAREN(loc);
@@ -63,22 +81,7 @@ loc.step();
 "||" return yy::parser::make_OR(loc);
 "&&" return yy::parser::make_AND(loc);
 
-"for" return yy::parser::make_FOR(loc);
-"if" return yy::parser::make_IF(loc);
-"else" return yy::parser::make_ELSE(loc);
-"def" return yy::parser::make_DEF(loc);
-"var" return yy::parser::make_VAR(loc);
-"true" return yy::parser::make_BOOL_LITERAL(true, loc);
-"false" return yy::parser::make_BOOL_LITERAL(false, loc);
-"while" return yy::parser::make_WHILE(loc);
-"return" return yy::parser::make_RETURN(loc);
-"stop" return yy::parser::make_STOP(loc);
-"skip" return yy::parser::make_SKIP(loc);
-"write" return yy::parser::make_WRITE(loc);
 
-"int" return yy::parser::make_TYPE_INT("type_int", loc);
-"string" return yy::parser::make_TYPE_STRING("type_string", loc);
-"bool" return yy::parser::make_TYPE_BOOL("type_bool", loc);
 
 {int} {
   errno = 0;

@@ -7,9 +7,13 @@ def main(): int {
     var x = 4, y = 30: int;
     var z: int;
 
+    var b: bool;
+
+    b = x;
+
     z = sum(x, y);
 
-    write z;
+    write "%d\n" % z;
 
     return 0;
 }

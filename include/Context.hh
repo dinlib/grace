@@ -8,6 +8,9 @@
 
 using namespace llvm;
 
+static const int INT_SIZE = 32;
+static const int BOOL_SIZE = 1;
+
 class Context {
     LLVMContext TheContext;
     IRBuilder<> TheBuilder;
@@ -35,6 +38,10 @@ public:
     IRBuilder<> &getBuilder() { return TheBuilder; }
 
     Type *getLLVMType(std::string &TypeRepresentation);
+
+    std::string getType(Type *T);
+
+    bool typeCheck(Type *A, Type *B);
 
     void dumpIR() const { TheModule.print(errs(), nullptr); }
 

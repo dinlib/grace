@@ -125,7 +125,8 @@ stmt: var_decl { $$ = $1; }
     | SKIP SEMICOLON { $$ = new SkipNode(); }
     | STOP SEMICOLON { $$ = new StopNode(); }
     | assign_stmt { $$ = $1; }
-    | WRITE expr_list SEMICOLON { $$ = new WriteNode($2); }
+    | WRITE STRING_LITERAL SEMICOLON { $$ = new WriteNode($2, NULL); }
+    | WRITE STRING_LITERAL MOD expr_list SEMICOLON { $$ = new WriteNode($2, $4); }
     ;
 
 if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
