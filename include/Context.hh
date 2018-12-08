@@ -6,8 +6,6 @@
 #include <SymbolTable.hh>
 #include <list>
 #include <llvm/IR/PassManager.h>
-#include <list>
-#include <llvm/IR/PassManager.h>
 
 namespace grace {
 static const int INT_SIZE = 32;

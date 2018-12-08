@@ -9,11 +9,13 @@ def main(): int {
     x = 2;
     y = 6;
 
-    for (i = 0; i < 10; i = i + 1) {
-        z = sum(sum(x, y), 100 * i);
-    }
+    while (z > 10) {
+        z = z - x;
 
-    write z;
+        for (i = 0; i < 10; i = i + 1) {
+            z = sum(sum(x, y), 100 * i);
+        }
+    }
 
     return 0;
 }
