@@ -7,12 +7,13 @@
 using namespace grace;
 
 bool Context::typeCheck(llvm::Type *A, llvm::Type *B) {
-    if (A->getTypeID() != B->getTypeID()) return false;
-
-    switch (A->getTypeID()) {
-        case llvm::Type::TypeID::IntegerTyID:
-            return A->getIntegerBitWidth() == B->getIntegerBitWidth();
-    }
-
+  if (A->getTypeID() != B->getTypeID())
     return false;
+
+  switch (A->getTypeID()) {
+  case llvm::Type::TypeID::IntegerTyID:
+    return A->getIntegerBitWidth() == B->getIntegerBitWidth();
+  }
+
+  return false;
 }

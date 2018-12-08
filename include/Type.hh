@@ -8,58 +8,58 @@
 #include <string>
 
 namespace llvm {
-    class Type;
+class Type;
 };
 
 namespace grace {
-    class Context;
-    class ArrayType;
+class Context;
+class ArrayType;
 
-    class Type {
-    public:
-        virtual ~Type() = default;
+class Type {
+public:
+  virtual ~Type() = default;
 
-        virtual llvm::Type *emit(Context &C) = 0;
+  virtual llvm::Type *emit(Context &C) = 0;
 
-        virtual std::string str() = 0;
+  virtual std::string str() = 0;
 
-        bool isArray();
-    };
+  bool isArray();
+};
 
-    class IntType : public Type {
-    public:
-        llvm::Type *emit(Context &C) override;
+class IntType : public Type {
+public:
+  llvm::Type *emit(Context &C) override;
 
-        std::string str() override { return "int"; }
-    };
+  std::string str() override { return "int"; }
+};
 
-    class BoolType : public Type {
-    public:
-        llvm::Type *emit(Context &C) override;
+class BoolType : public Type {
+public:
+  llvm::Type *emit(Context &C) override;
 
-        std::string str() override { return "bool"; }
-    };
+  std::string str() override { return "bool"; }
+};
 
-    class StringType : public Type {
-    public:
-        llvm::Type *emit(Context &C) override;
+class StringType : public Type {
+public:
+  llvm::Type *emit(Context &C) override;
 
-        std::string str() override { return "string"; }
-    };
+  std::string str() override { return "string"; }
+};
 
-    class ArrayType : public Type {
-    public:
-        Type *InnerType;
-        uint64_t Size;
+class ArrayType : public Type {
+public:
+  Type *InnerType;
+  uint64_t Size;
 
-        explicit ArrayType(Type *InnerType, uint64_t Size)
-                : InnerType(InnerType), Size(Size) {}
+  explicit ArrayType(Type *InnerType, uint64_t Size)
+      : InnerType(InnerType), Size(Size) {}
 
-        llvm::Type *emit(Context &C) override;
+  llvm::Type *emit(Context &C) override;
 
-        std::string str() override {
-            return InnerType->str() + "[" + std::to_string(Size) + "]";
-        }
-    };
+  std::string str() override {
+    return InnerType->str() + "[" + std::to_string(Size) + "]";
+  }
+};
 
 }; // namespace grace

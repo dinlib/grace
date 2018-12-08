@@ -12,31 +12,31 @@ YY_DECL;
 
 class Driver {
 public:
-    Driver();
+  Driver();
 
-    std::map<std::string, int> variables;
-    BlockNode *program;
+  std::map<std::string, int> variables;
+  BlockNode *program;
 
-    // Run the parser on file F. Return 0 on success.
-    int parse(const std::string &f);
+  // Run the parser on file F. Return 0 on success.
+  int parse(const std::string &f);
 
-    // The Name of the file being parsed.
-    std::string file;
+  // The Name of the file being parsed.
+  std::string file;
 
-    // Whether to generate parser debug traces.
-    bool trace_parsing;
+  // Whether to generate parser debug traces.
+  bool trace_parsing;
 
-    // Handling the scanner.
-    void scan_begin();
+  // Handling the scanner.
+  void scan_begin();
 
-    void scan_end();
+  void scan_end();
 
-    // Whether to generate scanner debug traces.
-    bool trace_scanning;
+  // Whether to generate scanner debug traces.
+  bool trace_scanning;
 
-    bool dump_ast;
-    bool dump_ir;
+  bool dump_ast;
+  bool dump_ir;
 
-    // The token's location used by the scanner.
-    yy::location location;
+  // The token's location used by the scanner.
+  yy::location location;
 };
