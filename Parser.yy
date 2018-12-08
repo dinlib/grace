@@ -98,7 +98,7 @@
 
 %type <VarDeclNodeListStmt *> var_decl
 %type <grace::Type *> data_type
-%type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
+%type <SpecVar *> spec_var spec_var_simple spec_var_simple_init
 %type <SpecVarList *> spec_var_list
 %type <ExprNode *> expr
 %type <CallExprNode *> call_expr
@@ -143,8 +143,6 @@ if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5,
 var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
                                                         for (auto spec : *$2) {
                                                           $$->varDeclList.push_back(
-                                                            (spec->Size > 0) ?
-                                                            new VarDeclNode(spec->Id, spec->Assign, new ArrayType($4, spec->Size)) :
                                                             new VarDeclNode(spec->Id, spec->Assign, $4)
                                                           );
                                                           delete spec;
@@ -159,20 +157,13 @@ spec_var_list: spec_var { $$ = new SpecVarList(); $$->push_back($1); }
 
 spec_var: spec_var_simple { $$ = $1; }
        | spec_var_simple_init { $$ = $1; }
-       | spec_var_array { $$ = $1; }
-       | spec_var_array_init { $$ = $1; }
        ;
 
-spec_var_simple: IDENTIFIER { $$ = new SpecVar($1, 0, NULL); }
+spec_var_simple: IDENTIFIER { $$ = new SpecVar($1, NULL); }
               ;
 
-spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar($1, 0, new AssignSimpleNode($1, $3)); }
+spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar($1, new AssignNode($1, $3)); }
                     ;
-
-spec_var_array: IDENTIFIER LBRACKET NUMBER RBRACKET { $$ = new SpecVar($1, $3, NULL); }
-              ;
-
-spec_var_array_init: IDENTIFIER LBRACKET NUMBER RBRACKET ASSIGN LBRACE literal_list RBRACE { $$ = new SpecVar($1, $3, new ArrayAssignNode($1, $7)); };
 
 literal_list: literal { $$ = new LiteralNodeList(); $$->push_back($1); } 
             | literal_list COMMA literal { $1->push_back($3); $$ = $1; }
@@ -198,15 +189,13 @@ param_list: param { $$ = new ParamList(); $$->push_back($1); }
   | param_list COMMA param { $1->push_back($3); $$ = $1; }
   ;
 
-param: IDENTIFIER COLON data_type { $$ = new Param($1, $3, false); }
-  | IDENTIFIER LBRACKET RBRACKET COLON data_type { $$ = new Param($1, $5, true); }
+param: IDENTIFIER COLON data_type { $$ = new Param($1, $3); }
   ;
 
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
 expr: IDENTIFIER { $$ = new VariableExprNode($1); }
-    | IDENTIFIER LBRACKET expr RBRACKET { $$ = new ArrayVariableExprNode($1, $3); }
     | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
@@ -244,8 +233,7 @@ for_stmt: FOR LPAREN assign_expr SEMICOLON expr SEMICOLON assign_expr RPAREN blo
 return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
 
-assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignSimpleNode($1, $3); }
-            | IDENTIFIER LBRACKET expr RBRACKET ASSIGN expr { $$= new AssignArrayIdxNode($1, $6, $3); }
+assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignNode($1, $3); }
             | IDENTIFIER PLUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }
             | IDENTIFIER MINUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::MINUS, $4); }
             | IDENTIFIER STAR ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::TIMES, $4); }

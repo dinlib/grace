@@ -3,17 +3,17 @@ def sum(x: int, y: int): int {
      return x + y;
 }
 
-def sumvec(v[]: int, n: int): int {
-    return n;
-}
-
 def main(): int {
-    var v[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0}: int;
-    var n = 10: int;
+    var x, y, z, i: int;
 
-    var z = 2: int;
+    x = 2;
+    y = 6;
 
-    z = sumvec(v, n);
+    for (i = 0; i < 10; i = i + 1) {
+        z = sum(sum(x, y), 100 * i);
+    }
 
-    return z;
+    write z;
+
+    return 0;
 }

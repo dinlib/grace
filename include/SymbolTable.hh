@@ -29,15 +29,6 @@ public:
   VariableSymbol(llvm::AllocaInst *Alloca, Type *Ty) : Alloca(Alloca), Ty(Ty) {}
 };
 
-//    class ArraySymbol : public Symbol {
-//    public:
-//        llvm::AllocaInst *Alloca;
-//        ArrayType *Ty;
-//
-//        ArraySymbol(llvm::AllocaInst *Alloca, ArrayType *Ty) : Alloca(Alloca),
-//        Ty(Ty) {}
-//    };
-
 class BlockSymbol : public Symbol {
 public:
   llvm::BasicBlock *BB;

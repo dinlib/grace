@@ -242,83 +242,35 @@ Value *VariableExprNode::codegen(Context &C) {
   return C.getBuilder().CreateLoad(Sym->Alloca, Id);
 }
 
-Value *ArrayVariableExprNode::codegen(Context &C) {
-  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
-  if (!Sym) {
-    Log::error(0, 0) << "variable " << Id << " not found.\n";
-    return nullptr;
-  }
-
-  auto Load = C.getBuilder().CreateLoad(Sym->Alloca, Id);
-  auto Idx = IdxExpr->codegen(C);
-
-  return C.getBuilder().CreateInBoundsGEP(Sym->Ty->emit(C), Load, Idx);
-}
-
 Value *LiteralStringNode::codegen(Context &C) {
   return C.getBuilder().CreateGlobalStringPtr(Str);
 }
 
-Value *ArrayAssignNode::codegen(Context &C) {
-  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
 
-  if (!Sym) {
-    Log::error(0, 0) << "variable with name '" << Id << "' not found.\n";
-    return nullptr;
-  }
+llvm::Value *AssignNode::codegen(Context &C) {
+    auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+    if (!Sym)
+        return nullptr;
 
-  std::vector<Value *> Values;
-  Values.reserve(literalList->size());
+    Value *Store = Assign->codegen(C);
+    if (!Store)
+        return nullptr;
 
-  for (auto Literal : *literalList) {
-    Values.push_back(Literal->codegen(C));
-  }
+    //    llvm::Type *AllocaTy = Alloca->getAllocatedType();
+    //    llvm::Type *StoreTy = Store->getType();
 
-  //    uint64_t AllocatedSize = Alloca->getType()->getArrayNumElements();
-  //
-  //    if (AllocatedSize != Values.size()) {
-  //        Log::error(0, 0) << "incorrect number of elements assigned, expected
-  //        " << AllocatedSize << " but found "
-  //                         << Values.size() << ".\n";
-  //        return nullptr;
-  //    }
+    //    if (!C.typeCheck(AllocaTy, StoreTy)) {
+    //        Log::error(0, 0) << "cannot assign value of type '" <<
+    //        C.getType(StoreTy)
+    //                         << "', expected '" << C.getType(AllocaTy) << "'\n";
+    //        return nullptr;
+    //    }
 
-  for (unsigned i = 0; i < Values.size(); ++i) {
-    //        if (!C.typeCheck(AllocatedType, Values[i]->getType()))
-    //            Log::error(0, 0) << "incorrect type found at index: " << i <<
-    //            " expected '" << C.getType(AllocatedType)
-    //                             << "' but found '" <<
-    //                             C.getType(Values[i]->getType()) << "'.\n";
+    C.getBuilder().CreateStore(Store, Sym->Alloca);
 
-    C.getBuilder().CreateInsertElement(Sym->Alloca, Values[i], i);
-  }
-
-  return nullptr;
+    return Store;
 }
 
-Value *AssignSimpleNode::codegen(Context &C) {
-  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
-  if (!Sym)
-    return nullptr;
-
-  Value *Store = Assign->codegen(C);
-  if (!Store)
-    return nullptr;
-
-  //    llvm::Type *AllocaTy = Alloca->getAllocatedType();
-  //    llvm::Type *StoreTy = Store->getType();
-
-  //    if (!C.typeCheck(AllocaTy, StoreTy)) {
-  //        Log::error(0, 0) << "cannot assign value of type '" <<
-  //        C.getType(StoreTy)
-  //                         << "', expected '" << C.getType(AllocaTy) << "'\n";
-  //        return nullptr;
-  //    }
-
-  C.getBuilder().CreateStore(Store, Sym->Alloca);
-
-  return Store;
-}
 
 Value *VarDeclNodeListStmt::codegen(Context &C) {
   for (auto VarDecl : varDeclList)
@@ -434,7 +386,7 @@ Value *CompoundAssignNode::codegen(Context &C) {
   }
 
   auto Alloca = Sym->Alloca;
-  Value *Store = expr->codegen(C);
+  Value *Store = Assign->codegen(C);
 //
 //  Type *AllocaTy = Alloca->getAllocatedType();
 //  Type *StoreTy = Store->getType();
@@ -466,8 +418,4 @@ Value *CompoundAssignNode::codegen(Context &C) {
     C.getBuilder().CreateStore(Result, Alloca);
     break;
   }
-}
-
-Value *AssignArrayIdxNode::codegen(Context &C) {
-  return AssignSimpleNode::codegen(C);
 }
