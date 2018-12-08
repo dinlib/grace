@@ -31,6 +31,6 @@ add_executable(grace
           main.cc
                 Driver.cc 
                 Dump.cc
-        Codegen.cc Context.cc include/BinOp.hh include/location.hh Error.cc include/Error.hh include/Type.hh Type.cc SymbolTable.cc include/SymbolTable.hh)
+        Codegen.cc Context.cc include/BinOp.hh include/location.hh Error.cc include/Error.hh include/Type.hh Type.cc SymbolTable.cc include/SymbolTable.hh BinOp.cc BinOp.hh)
 
 target_link_libraries(grace PUBLIC "LLVM" ${llvm_libs} )

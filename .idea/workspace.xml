@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true" buildAllGenerated="true">
     <generated>
-      <config projectName="grace" targetName="intrinsics_gen" />
       <config projectName="grace" targetName="grace" />
+      <config projectName="grace" targetName="intrinsics_gen" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="true">
@@ -12,11 +12,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="10988de1-892a-4173-8069-692c3a598f96" name="Default Changelist" comment="while loop IR generated">
+    <list default="true" id="10988de1-892a-4173-8069-692c3a598f96" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/BinOp.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Codegen.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Codegen.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Context.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Context.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/AST.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/AST.hh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Context.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/Context.hh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/BinOp.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/BinOp.hh" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -42,16 +44,17 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="cc" value="54" />
+          <entry key="cc" value="57" />
           <entry key="clang-format" value="1" />
           <entry key="cz" value="7" />
           <entry key="gc" value="1" />
           <entry key="gr" value="13" />
           <entry key="h" value="75" />
-          <entry key="hh" value="89" />
+          <entry key="hh" value="93" />
           <entry key="list" value="1" />
           <entry key="ll" value="7" />
-          <entry key="string" value="2" />
+          <entry key="ostream" value="1" />
+          <entry key="string" value="3" />
           <entry key="txt" value="5" />
           <entry key="yy" value="11" />
         </counts>
@@ -59,18 +62,18 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="CMakeLists.txt" value="5" />
-          <entry key="ObjectiveC" value="221" />
+          <entry key="ObjectiveC" value="230" />
           <entry key="PLAIN_TEXT" value="40" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="cc" value="14014" />
+          <entry key="cc" value="14061" />
           <entry key="cz" value="5" />
           <entry key="gc" value="4" />
           <entry key="gr" value="805" />
           <entry key="h" value="3" />
-          <entry key="hh" value="6663" />
+          <entry key="hh" value="7005" />
           <entry key="ll" value="165" />
           <entry key="mm" value="12" />
           <entry key="txt" value="233" />
@@ -80,7 +83,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CMakeLists.txt" value="104" />
-          <entry key="ObjectiveC" value="20692" />
+          <entry key="ObjectiveC" value="21081" />
           <entry key="PLAIN_TEXT" value="2701" />
         </counts>
       </usages-collector>
@@ -91,8 +94,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Codegen.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="488">
-              <caret line="468" column="17" selection-start-line="468" selection-start-column="17" selection-end-line="468" selection-end-column="17" />
+            <state relative-caret-position="238">
+              <caret line="452" column="31" selection-start-line="452" selection-start-column="31" selection-end-line="452" selection-end-column="31" />
+              <folding>
+                <element signature="e#0#21#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -100,11 +106,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/include/AST.hh">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="196">
-              <caret line="269" column="17" selection-start-line="269" selection-start-column="17" selection-end-line="269" selection-end-column="17" />
+            <state relative-caret-position="463">
+              <caret line="71" column="39" selection-start-line="71" selection-start-column="39" selection-end-line="71" selection-end-column="39" />
               <folding>
                 <element signature="e#15#34#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/BinOp.hh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="408">
+              <caret line="24" column="2" selection-start-line="24" selection-start-column="2" selection-end-line="24" selection-end-column="2" />
             </state>
           </provider>
         </entry>
@@ -113,8 +128,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Assign</find>
-      <find>PLUS</find>
       <find>#define</find>
       <find>Body</find>
       <find>body</find>
@@ -143,6 +156,8 @@
       <find>return_stmt</find>
       <find>SpecVar</find>
       <find>ForNode</find>
+      <find>os &lt;&lt;</find>
+      <find>str</find>
     </findStrings>
     <replaceStrings>
       <replace>block</replace>
@@ -185,6 +200,9 @@
         <option value="$PROJECT_DIR$/include/Context.hh" />
         <option value="$PROJECT_DIR$/examples/function_test.gr" />
         <option value="$PROJECT_DIR$/Codegen.cc" />
+        <option value="$PROJECT_DIR$/BinOp.hh" />
+        <option value="$PROJECT_DIR$/BinOp.cc" />
+        <option value="$PROJECT_DIR$/include/BinOp.hh" />
         <option value="$PROJECT_DIR$/include/AST.hh" />
       </list>
     </option>
@@ -306,7 +324,7 @@
       <workItem from="1544111817183" duration="3171000" />
       <workItem from="1544205387959" duration="8937000" />
       <workItem from="1544215636035" duration="13499000" />
-      <workItem from="1544267793105" duration="6232000" />
+      <workItem from="1544267793105" duration="8028000" />
     </task>
     <task id="LOCAL-00001" summary="Implementing IR generation for function">
       <created>1542926016525</created>
@@ -329,11 +347,18 @@
       <option name="project" value="LOCAL" />
       <updated>1543969680337</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="while loop IR generated">
+      <created>1544275362208</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1544275362208</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="64945000" />
+    <option name="totallyTimeSpent" value="66741000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -359,7 +384,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32941177" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info active="true" anchor="bottom" id="Messages" order="8" sideWeight="0.49939904" visible="true" weight="0.3388601" />
+      <window_info active="true" anchor="bottom" id="Messages" order="8" sideWeight="0.49939904" visible="true" weight="0.32953367" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.32941177" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50060093" side_tool="true" weight="0.25492227" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
@@ -432,22 +457,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///usr/local/opt/llvm/include/llvm/IR/User.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="46" column="25" selection-start-line="46" selection-start-column="25" selection-end-line="46" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/opt/llvm/include/llvm/IR/Instruction.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="215">
-          <caret line="43" column="28" selection-start-line="43" selection-start-column="28" selection-end-line="43" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cmake-build-debug/location.hh" />
-    <entry file="file://$PROJECT_DIR$/TokLocation.cc" />
     <entry file="file://$PROJECT_DIR$/include/location.hh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="256">
@@ -584,13 +593,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
           <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/BinOp.hh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="21" column="2" lean-forward="true" selection-start-line="21" selection-start-column="2" selection-end-line="21" selection-end-column="2" />
         </state>
       </provider>
     </entry>
@@ -745,17 +747,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/BinOp.hh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ostream">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3902" />
+      </provider>
+    </entry>
+    <entry file="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/string">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-502" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BinOp.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Codegen.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
-          <caret line="468" column="17" selection-start-line="468" selection-start-column="17" selection-end-line="468" selection-end-column="17" />
+        <state relative-caret-position="238">
+          <caret line="452" column="31" selection-start-line="452" selection-start-column="31" selection-end-line="452" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/BinOp.hh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="24" column="2" selection-start-line="24" selection-start-column="2" selection-end-line="24" selection-end-column="2" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/include/AST.hh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="196">
-          <caret line="269" column="17" selection-start-line="269" selection-start-column="17" selection-end-line="269" selection-end-column="17" />
+        <state relative-caret-position="463">
+          <caret line="71" column="39" selection-start-line="71" selection-start-column="39" selection-end-line="71" selection-end-column="39" />
           <folding>
             <element signature="e#15#34#0" expanded="true" />
           </folding>

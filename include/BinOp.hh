@@ -5,6 +5,9 @@
 #ifndef GRACE_OPERATORS_HH
 #define GRACE_OPERATORS_HH
 
+#include <ostream>
+
+namespace grace {
 enum class BinOp {
   PLUS,
   MINUS,
@@ -20,5 +23,6 @@ enum class BinOp {
   AND,
   OR,
 };
+}; // namespace grace
 
 #endif // GRACE_OPERATORS_HH

@@ -19,14 +19,41 @@ static std::string NestedLevel(unsigned level) {
   return str;
 }
 
+static std::string to_string(const BinOp &Op) {
+  switch (Op) {
+  case BinOp::PLUS:
+    return "+";
+  case BinOp::MINUS:
+    return "-";
+  case BinOp::TIMES:
+    return "*";
+  case BinOp::DIV:
+    return "/";
+  case BinOp::MOD:
+    return "%";
+  case BinOp::LT:
+    return "<";
+  case BinOp::LTEQ:
+    return "<=";
+  case BinOp::GT:
+    return ">";
+  case BinOp::GTEQ:
+    return ">=";
+  case BinOp::EQ:
+    return "==";
+  case BinOp::DIFF:
+    return "!=";
+  case BinOp::AND:
+    return "&&";
+  case BinOp::OR:
+    return "||";
+  }
+}
+
 class StmtNode;
-
 class VarDeclNode;
-
 class SpecVar;
-
 class LiteralNode;
-
 class ExprNode;
 
 typedef std::vector<StmtNode *> StmtList;
@@ -43,7 +70,6 @@ public:
 };
 
 typedef std::vector<Param *> ParamList;
-
 typedef std::vector<ExprNode *> ExprList;
 
 class Node {
@@ -105,7 +131,7 @@ public:
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(assing id: " << Id
        << "; value: " << std::endl;
-    //        os << Op << std::endl;
+    os << to_string(Op) << std::endl;
     Assign->dumpAST(os, level + 1);
   }
 
@@ -299,7 +325,7 @@ public:
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(expr" << std::endl;
     LHS->dumpAST(os, level + 1);
-    //        os << Op << std::endl;
+    os << to_string(Op) << std::endl;
     RHS->dumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
