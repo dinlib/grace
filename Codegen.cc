@@ -344,7 +344,7 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::TIMES:
     return C.getBuilder().CreateMul(LHSV, RHSV);
   case BinOp::DIV:
-    return C.getBuilder().CreateFDiv(LHSV, RHSV);
+    return C.getBuilder().CreateUDiv(LHSV, RHSV);
   case BinOp::MOD:
     break;
   case BinOp::LT:
@@ -423,6 +423,49 @@ Value *WriteNode::codegen(Context &C) {
   //  C.getBuilder().CreateCall(Printf, Values, "callprintf");
 
   return nullptr;
+}
+
+Value *CompoundAssignNode::codegen(Context &C) {
+  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+
+  if (!Sym) {
+    Log::error(0, 0) << "variable " << Id << " not declared in this scope.\n";
+    return nullptr;
+  }
+
+  auto Alloca = Sym->Alloca;
+  Value *Store = expr->codegen(C);
+//
+//  Type *AllocaTy = Alloca->getAllocatedType();
+//  Type *StoreTy = Store->getType();
+//
+//  if (!C.typeCheck(AllocaTy, StoreTy)) {
+//    Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
+//                     << "', expected '" << C.getType(AllocaTy) << "'\n";
+//    return nullptr;
+//  }
+
+  Value *AllocaValue = C.getBuilder().CreateLoad(Alloca, Id);
+  Value *Result = nullptr;
+
+  switch (Op) {
+  case BinOp::PLUS:
+    Result = C.getBuilder().CreateAdd(Store, AllocaValue);
+    C.getBuilder().CreateStore(Result, Alloca);
+    break;
+  case BinOp::MINUS:
+    Result = C.getBuilder().CreateSub(Store, AllocaValue);
+    C.getBuilder().CreateStore(Result, Alloca);
+    break;
+  case BinOp::TIMES:
+    Result = C.getBuilder().CreateMul(Store, AllocaValue);
+    C.getBuilder().CreateStore(Result, Alloca);
+    break;
+  case BinOp::DIV:
+    Result = C.getBuilder().CreateUDiv(Store, AllocaValue);
+    C.getBuilder().CreateStore(Result, Alloca);
+    break;
+  }
 }
 
 Value *AssignArrayIdxNode::codegen(Context &C) {
