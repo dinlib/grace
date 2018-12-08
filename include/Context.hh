@@ -5,60 +5,49 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "Log.hh"
+#include <SymbolTable.hh>
 
-using namespace llvm;
+namespace grace {
+    static const int INT_SIZE = 32;
+    static const int BOOL_SIZE = 1;
 
-static const int INT_SIZE = 32;
-static const int BOOL_SIZE = 1;
+    class Context {
+        llvm::LLVMContext TheContext;
+        llvm::IRBuilder<> TheBuilder;
+        llvm::Module TheModule;
 
-class Context {
-    LLVMContext TheContext;
-    IRBuilder<> TheBuilder;
-    Module TheModule;
+    public:
+        SymbolTable ST;
 
-//    std::unique_ptr<FunctionPassManager> FPM;
+        Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
+            ExpectReturn = false;
+            ReturnFound = false;
+            IsInsideLoop = false;
 
-    std::list<std::map<std::string, AllocaInst *>> NamedValues;
+            // initialize global scope
+            ST.enterScope();
 
-public:
-    Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
-        ExpectReturn = false;
-        ReturnFound = false;
-        IsInsideLoop = false;
+            initializePassManager();
+        }
 
-        enterScope();
+        llvm::Module &getModule() { return TheModule; }
 
-        initializePassManager();
-    }
+        llvm::LLVMContext &getContext() { return TheModule.getContext(); }
 
-    Module &getModule() { return TheModule; }
+        llvm::IRBuilder<> &getBuilder() { return TheBuilder; }
 
-    LLVMContext &getContext() { return TheModule.getContext(); }
+        bool typeCheck(llvm::Type *A, llvm::Type *B);
 
-    IRBuilder<> &getBuilder() { return TheBuilder; }
+        void dumpIR() const { TheModule.print(errs(), nullptr); }
 
-    Type *getLLVMType(std::string &TypeRepresentation);
+        bool ExpectReturn;
+        bool ReturnFound;
+        bool IsInsideLoop;
 
-    std::string getType(Type *T);
+    private:
+        void initializePassManager() {
 
-    bool typeCheck(Type *A, Type *B);
+        }
+    };
 
-    void dumpIR() const { TheModule.print(errs(), nullptr); }
-
-    void enterScope();
-
-    void leaveScope();
-
-    void insertNamedValueIntoScope(const std::string &Name, AllocaInst *V);
-
-    AllocaInst *getNamedValueInScope(std::string &Name);
-
-    bool ExpectReturn;
-    bool ReturnFound;
-    bool IsInsideLoop;
-
-private:
-    void initializePassManager() {
-
-    }
 };

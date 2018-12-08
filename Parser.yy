@@ -10,7 +10,10 @@
   #include <string>
   #include "AST.hh"
   #include "BinOp.hh"
+  #include "Type.hh"
   class Driver;
+
+  using namespace grace;
 }
 
 // The parsing context.
@@ -94,7 +97,7 @@
 %type <BlockNode*> stmts block
 
 %type <VarDeclNodeListStmt *> var_decl
-%type <std::string> data_type
+%type <grace::Type *> data_type
 %type <SpecVar *> spec_var spec_var_simple spec_var_array spec_var_simple_init spec_var_array_init
 %type <SpecVarList *> spec_var_list
 %type <ExprNode *> expr
@@ -141,7 +144,7 @@ var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeList
                                                         for (auto spec : *$2) {
                                                           $$->varDeclList.push_back(
                                                             (spec->Size > 0) ?
-                                                            new ArrayDeclNode(spec->Id, spec->Assign, $4, spec->Size) :
+                                                            new VarDeclNode(spec->Id, spec->Assign, new ArrayType($4, spec->Size)) :
                                                             new VarDeclNode(spec->Id, spec->Assign, $4)
                                                           );
                                                           delete spec;
@@ -179,9 +182,9 @@ literal: STRING_LITERAL { $$ = new LiteralStringNode($1); }
        | NUMBER { $$ = new LiteralIntNode($1); }
        | BOOL_LITERAL { $$ = new LiteralBoolNode($1); };
 
-data_type: TYPE_INT { $$ = "type_int"; }
-    | TYPE_STRING { $$ = "type_string"; }
-    | TYPE_BOOL { $$ = "type_bool"; }
+data_type: TYPE_INT { $$ = new grace::IntType(); }
+    | TYPE_STRING { $$ = new grace::StringType(); }
+    | TYPE_BOOL { $$ = new grace::BoolType(); }
     ;
 
 func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, new ParamList(), $7); }
@@ -202,8 +205,8 @@ param: IDENTIFIER COLON data_type { $$ = new Param($1, $3, false); }
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
-expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
-    | IDENTIFIER LBRACKET expr RBRACKET { $$ = new ArrayAccessExpr($1, $3); }
+expr: IDENTIFIER { $$ = new VariableExprNode($1); }
+    | IDENTIFIER LBRACKET expr RBRACKET { $$ = new ArrayVariableExprNode($1, $3); }
     | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }

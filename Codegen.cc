@@ -1,9 +1,14 @@
 #include "llvm/IR/Verifier.h"
+#include "llvm/IR/Module.h"
 #include <AST.hh>
 #include <Error.hh>
 #include <iostream>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/IRBuilder.h>
+#include "Context.hh"
 
 using namespace llvm;
+using namespace grace;
 
 /// LogError* - These are little helper functions for error handling.
 Node *LogError(const char *Str) {
@@ -11,16 +16,11 @@ Node *LogError(const char *Str) {
     return nullptr;
 }
 
-Value *LogErrorV(const char *Str) {
-    LogError(Str);
-    return nullptr;
-}
-
 /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
 /// the function.  This is used for mutable variables etc.
 static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
                                           LLVMContext &TheContext,
-                                          const std::string &Name, Type *T) {
+                                          const std::string &Name, llvm::Type *T) {
     IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                      TheFunction->getEntryBlock().begin());
     return TmpB.CreateAlloca(T, nullptr, Name.c_str());
@@ -86,17 +86,17 @@ Value *FuncDeclNode::codegen(Context &C) {
         return nullptr;
     }
 
-    C.enterScope();
+    C.ST.enterScope();
 
     // Create vector with llvm types for args.
-    std::vector<Type *> ArgsType;
+    std::vector<llvm::Type *> ArgsType;
     ArgsType.reserve(Args->size());
     for (auto Arg : *Args)
-        ArgsType.push_back(C.getLLVMType(Arg->Type));
+        ArgsType.push_back(Arg->Ty->emit(C));
 
     // Create function signature.
     FunctionType *FT =
-            FunctionType::get(C.getLLVMType(ReturnType), ArgsType, false);
+            FunctionType::get(ReturnTy->emit(C), ArgsType, false);
     F = Function::Create(FT, GlobalValue::LinkageTypes::ExternalLinkage, Name,
                          &C.getModule());
 
@@ -109,13 +109,15 @@ Value *FuncDeclNode::codegen(Context &C) {
     C.getBuilder().SetInsertPoint(BB);
 
     // insert args into scope
+    Idx = 0;
     for (auto &Arg : F->args()) {
         AllocaInst *Alloca =
                 CreateEntryBlockAlloca(F, C.getContext(), Arg.getName(), Arg.getType());
 
         C.getBuilder().CreateStore(&Arg, Alloca);
 
-        C.insertNamedValueIntoScope(Arg.getName(), Alloca);
+        // TODO: pass correct type
+        C.ST.set(Arg.getName(), new VariableSymbol(Alloca, (*Args)[Idx++]->Ty));
     }
 
     // generate function body
@@ -123,7 +125,7 @@ Value *FuncDeclNode::codegen(Context &C) {
     C.ReturnFound = false;
     Body->codegen(C);
 
-    C.leaveScope();
+    C.ST.leaveScope();
 
     if (!C.ReturnFound) {
         Log::warning(0, 0) << "expected a return statement inside function body, "
@@ -135,7 +137,7 @@ Value *FuncDeclNode::codegen(Context &C) {
 }
 
 Value *VarDeclNode::codegen(Context &C) {
-    if (C.getNamedValueInScope(Id)) {
+    if (C.ST.get(Id)) {
         Log::error(0, 0) << "variable " << Id << " already declared.\n";
         return nullptr;
     }
@@ -143,31 +145,9 @@ Value *VarDeclNode::codegen(Context &C) {
     Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
 
     AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id,
-                                                C.getLLVMType(Type));
+                                                Ty->emit(C));
 
-    C.insertNamedValueIntoScope(Id, Alloca);
-
-    if (Assign) {
-        Assign->codegen(C);
-    }
-
-    return nullptr;
-}
-
-
-Value *ArrayDeclNode::codegen(Context &C) {
-    if (C.getNamedValueInScope(Id)) {
-        Log::error(0, 0) << "variable " << Id << " already declared.\n";
-        return nullptr;
-    }
-
-    Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
-
-    ArrayType *ArrayTy = ArrayType::get(C.getLLVMType(Type), Size);
-
-    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id, ArrayTy);
-
-    C.insertNamedValueIntoScope(Id, Alloca);
+    C.ST.set(Id, new VariableSymbol(Alloca, Ty));
 
     if (Assign) {
         Assign->codegen(C);
@@ -175,6 +155,25 @@ Value *ArrayDeclNode::codegen(Context &C) {
 
     return nullptr;
 }
+
+//Value *ArrayDeclNode::codegen(Context &C) {
+//    if (C.ST.get(Id)) {
+//        Log::error(0, 0) << "variable " << Id << " already declared.\n";
+//        return nullptr;
+//    }
+//
+//    Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
+//
+//    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id, Ty->emit(C));
+//
+//    C.ST.set(Id, new ArraySymbol(Alloca, dynamic_cast<ArrayType *>(Ty)));
+//
+//    if (Assign) {
+//        Assign->codegen(C);
+//    }
+//
+//    return nullptr;
+//}
 
 Value *ReturnNode::codegen(Context &C) {
     C.ReturnFound = true;
@@ -233,24 +232,39 @@ Value *WhileNode::codegen(Context &C) {
     return nullptr;
 }
 
-Value *ExprIdentifierNode::codegen(Context &C) {
-    AllocaInst *Alloca = C.getNamedValueInScope(Id);
-    if (!Alloca) {
+Value *VariableExprNode::codegen(Context &C) {
+    auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+    if (!Sym) {
         Log::error(0, 0) << "variable " << Id << " not found.\n";
         return nullptr;
     }
 
-    return C.getBuilder().CreateLoad(Alloca, Id);
+    return C.getBuilder().CreateLoad(Sym->Alloca, Id);
 }
+
+
+Value *ArrayVariableExprNode::codegen(Context &C) {
+    auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+    if (!Sym) {
+        Log::error(0, 0) << "variable " << Id << " not found.\n";
+        return nullptr;
+    }
+
+    auto Load = C.getBuilder().CreateLoad(Sym->Alloca, Id);
+    auto Idx = IdxExpr->codegen(C);
+
+    return C.getBuilder().CreateInBoundsGEP(Sym->Ty->emit(C), Load, Idx);
+}
+
 
 Value *LiteralStringNode::codegen(Context &C) {
     return C.getBuilder().CreateGlobalStringPtr(Str);
 }
 
 Value *ArrayAssignNode::codegen(Context &C) {
+    auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
 
-    AllocaInst *Alloca = C.getNamedValueInScope(Id);
-    if (!Alloca) {
+    if (!Sym) {
         Log::error(0, 0) << "variable with name '" << Id << "' not found.\n";
         return nullptr;
     }
@@ -270,36 +284,35 @@ Value *ArrayAssignNode::codegen(Context &C) {
 //        return nullptr;
 //    }
 
-    Type *AllocatedType = Alloca->getAllocatedType();
-
     for (unsigned i = 0; i < Values.size(); ++i) {
 //        if (!C.typeCheck(AllocatedType, Values[i]->getType()))
 //            Log::error(0, 0) << "incorrect type found at index: " << i << " expected '" << C.getType(AllocatedType)
 //                             << "' but found '" << C.getType(Values[i]->getType()) << "'.\n";
 
-        C.getBuilder().CreateInsertElement(Alloca, Values[i], i);
+        C.getBuilder().CreateInsertElement(Sym->Alloca, Values[i], i);
     }
 
     return nullptr;
 }
 
 Value *AssignSimpleNode::codegen(Context &C) {
-    AllocaInst *Alloca = C.getNamedValueInScope(Id);
-    if (!Alloca)
+    auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+    if (!Sym)
         return nullptr;
 
     Value *Store = Assign->codegen(C);
+    if (!Store) return nullptr;
 
-    Type *AllocaTy = Alloca->getAllocatedType();
-    Type *StoreTy = Store->getType();
+//    llvm::Type *AllocaTy = Alloca->getAllocatedType();
+//    llvm::Type *StoreTy = Store->getType();
 
-    if (!C.typeCheck(AllocaTy, StoreTy)) {
-        Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
-                         << "', expected '" << C.getType(AllocaTy) << "'\n";
-        return nullptr;
-    }
+//    if (!C.typeCheck(AllocaTy, StoreTy)) {
+//        Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
+//                         << "', expected '" << C.getType(AllocaTy) << "'\n";
+//        return nullptr;
+//    }
 
-    C.getBuilder().CreateStore(Store, Alloca);
+    C.getBuilder().CreateStore(Store, Sym->Alloca);
 
     return Store;
 }
@@ -322,13 +335,13 @@ Value *ExprOperationNode::codegen(Context &C) {
 
     switch (Op) {
         case BinOp::PLUS:
-            return C.getBuilder().CreateAdd(LHSV, RHSV, "addtmp");
+            return C.getBuilder().CreateAdd(LHSV, RHSV);
         case BinOp::MINUS:
-            return C.getBuilder().CreateSub(LHSV, RHSV, "subtmp");
+            return C.getBuilder().CreateSub(LHSV, RHSV);
         case BinOp::TIMES:
-            return C.getBuilder().CreateMul(LHSV, RHSV, "multmp");
+            return C.getBuilder().CreateMul(LHSV, RHSV);
         case BinOp::DIV:
-            return C.getBuilder().CreateFDiv(LHSV, RHSV, "divtmp");
+            return C.getBuilder().CreateFDiv(LHSV, RHSV);
         case BinOp::MOD:
             break;
         case BinOp::LT:
@@ -408,11 +421,7 @@ Value *WriteNode::codegen(Context &C) {
     return nullptr;
 }
 
-Value *ArrayAccessExpr::codegen(Context &C) {
-    return ExprIdentifierNode::codegen(C);
-}
 
 Value *AssignArrayIdxNode::codegen(Context &C) {
     return AssignSimpleNode::codegen(C);
 }
-
