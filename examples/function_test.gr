@@ -5,9 +5,12 @@ def sum(x: int, y: int): int {
 
 def main(): int {
     var x, y, z, i: int;
+    var b: bool;
 
     x = 2;
     y = 6;
+
+    //b = y;
 
     while (z > 10) {
         z = z - x;

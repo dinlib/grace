@@ -111,7 +111,6 @@ Value *FuncDeclNode::codegen(Context &C) {
 
     C.getBuilder().CreateStore(&Arg, Alloca);
 
-    // TODO: pass correct type
     C.ST.set(Arg.getName(), new VariableSymbol(Alloca, (*Args)[Idx++]->Ty));
   }
 
@@ -304,15 +303,14 @@ llvm::Value *AssignNode::codegen(Context &C) {
   if (!Store)
     return nullptr;
 
-  //    llvm::Type *AllocaTy = Alloca->getAllocatedType();
-  //    llvm::Type *StoreTy = Store->getType();
+  auto AssignTy = Type::from(Store->getType());
+  auto DeclaredTy = Sym->Ty;
 
-  //    if (!C.typeCheck(AllocaTy, StoreTy)) {
-  //        Log::error(0, 0) << "cannot assign value of type '" <<
-  //        C.getType(StoreTy)
-  //                         << "', expected '" << C.getType(AllocaTy) << "'\n";
-  //        return nullptr;
-  //    }
+  if (*AssignTy != *DeclaredTy) {
+    Log::error(0, 0) << "cannot assign value of type '" << AssignTy->str()
+                     << "', expected '" << DeclaredTy->str() << "'\n";
+    return nullptr;
+  }
 
   C.getBuilder().CreateStore(Store, Sym->Alloca);
 

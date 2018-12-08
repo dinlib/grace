@@ -20,3 +20,39 @@ llvm::Type *StringType::emit(Context &C) {
   llvm::errs() << "unimplemented\n";
   return nullptr;
 }
+
+grace::Type *grace::Type::from(llvm::Type *Ty) {
+  if (Ty->isIntegerTy(32))
+    return new IntType();
+
+  if (Ty->isIntegerTy(1))
+    return new BoolType();
+
+  return nullptr;
+}
+
+bool grace::Type::isIntTy() const {
+  return dynamic_cast<const IntType *>(this) != nullptr;
+}
+
+bool grace::Type::isStringTy() const {
+  return dynamic_cast<const StringType *>(this) != nullptr;
+}
+
+bool grace::Type::isBoolTy() const {
+  return dynamic_cast<const BoolType *>(this) != nullptr;
+}
+
+bool grace::Type::operator==(const grace::Type &Other) {
+  if (isIntTy() && Other.isIntTy())
+    return true;
+  if (isBoolTy() && Other.isBoolTy())
+    return true;
+  if (isStringTy() && Other.isStringTy())
+    return true;
+  return false;
+}
+
+bool grace::Type::operator!=(const grace::Type &Other) {
+  return !(*this == Other);
+}

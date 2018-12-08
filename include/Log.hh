@@ -7,6 +7,8 @@
 
 using namespace llvm;
 
+extern bool hasError;
+
 class Log {
 public:
   // static raw_ostream &error(const TokLocation &Loc) {
@@ -14,6 +16,7 @@ public:
   // }
 
   static raw_ostream &error(unsigned Line, unsigned Col) {
+    hasError = true;
     errs() << Line << "," << Col << ": \033[1;31merror\033[0m: ";
     return errs();
   }
