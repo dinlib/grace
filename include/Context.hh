@@ -24,7 +24,6 @@ public:
   Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
     ExpectReturn = false;
     ReturnFound = false;
-    IsInsideLoop = false;
 
     // initialize global scope
     ST.enterScope();
@@ -44,7 +43,6 @@ public:
 
   bool ExpectReturn;
   bool ReturnFound;
-  bool IsInsideLoop;
 
 private:
   void initializePassManager() {}

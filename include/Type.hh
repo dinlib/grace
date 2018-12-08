@@ -13,7 +13,6 @@ class Type;
 
 namespace grace {
 class Context;
-class ArrayType;
 
 class Type {
 public:
