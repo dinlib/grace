@@ -50,8 +50,8 @@ Value *IfThenElseNode::codegen(Context &C) {
   auto TheFunction = Builder.GetInsertBlock()->getParent();
 
   auto ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-  auto ElseBB = BasicBlock::Create(TheContext, "else");
-  auto MergeBB = BasicBlock::Create(TheContext, "ifcont");
+  auto ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
+  auto MergeBB = BasicBlock::Create(TheContext, "ifcont", TheFunction);
   
   auto CondV = Condition->codegen(C);
   if(!CondV) {
