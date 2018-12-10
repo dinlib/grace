@@ -43,77 +43,50 @@ Value *LiteralBoolNode::codegen(Context &C) {
 }
 
 Value *IfThenElseNode::codegen(Context &C) {
-  //  IRBuilder<> &Builder = C.getBuilder();
-  //  LLVMContext &TheContext = C.getContext();
-  //
-  //  Value *CondV = condition->codegen(C);
-  //  if (!CondV) // TODO: log error
-  //    return nullptr;
-  //
-  //  CondV = Builder.CreateICmpNE(CondV, ConstantInt::get(TheContext,
-  //  APInt(INT_SIZE, 0)), "ifcond");
-  //
-  //  Function *TheFunction = Builder.GetInsertBlock()->getParent();
-  //
-  //  BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-  //  BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
-  //  BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
-  //
-  //  Builder.CreateCondBr(CondV, ThenBB, ElseBB);
-  //
-  //  Builder.SetInsertPoint(ThenBB);
-  //
-  //  Value *ThenV = thenBlock->codegen(C);
-  //  if (!ThenV) // TODO: log error
-  //    return nullptr;
-  //
-  //  Builder.CreateBr(MergeBB);
-  //
-  //  ThenBB = Builder.GetInsertBlock();
-  //
-  //  TheFunction->getBasicBlockList().push_back(ElseBB);
-  //  Builder.SetInsertPoint(MergeBB);
 
   auto &Builder = C.getBuilder();
   auto &TheContext = C.getContext();
-
+  
   auto TheFunction = Builder.GetInsertBlock()->getParent();
 
-  auto *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-  auto *ElseBB = BasicBlock::Create(TheContext, "else");
-  auto *MergeBB = BasicBlock::Create(TheContext, "ifcont");
-
-  auto CondV = Condition->codegen(C);
-  if(!CondV)
-    //TODO erro message;
-    return nullptr;
-  assert(CondV);
+  auto ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+  auto ElseBB = BasicBlock::Create(TheContext, "else");
+  auto MergeBB = BasicBlock::Create(TheContext, "ifcont");
   
-  //CondV = Builder.CreateICmpEQ(CondV, ConstantInt::get(TheContext, APInt(INT_SIZE, 0)), "ifcond");
+  auto CondV = Condition->codegen(C);
+  if(!CondV) {
+    Log::error(0, 0) << "condition error\n";
+    return nullptr;
+  }
+  assert(CondV);
+
   Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+
   Builder.SetInsertPoint(ThenBB);
 
-  auto *ThenV = Then->codegen(C);
-  if(!ThenV)
-    //TODO erro message;
+  auto ThenV = Then->codegen(C);
+  if(!ThenV) {
+    Log::error(0, 0) << "then error\n";
     return nullptr;
-  
+  }
+
   Builder.CreateBr(MergeBB);
   ThenBB = Builder.GetInsertBlock();
+
   TheFunction->getBasicBlockList().push_back(ElseBB);
   Builder.SetInsertPoint(ElseBB);
 
-  auto *ElseV = Else->codegen(C);
-  if(!ElseV)
-    //TODO erro message;
+  auto ElseV = Else->codegen(C);
+  if(!ElseV) {
+    Log::warning(0, 0) << "else error\n";
     return nullptr;
-  
+  }
+
   Builder.CreateBr(MergeBB);
   ElseBB = Builder.GetInsertBlock();
 
   TheFunction->getBasicBlockList().push_back(MergeBB);
   Builder.SetInsertPoint(MergeBB);
-
   return nullptr;
 }
 
