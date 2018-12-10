@@ -224,8 +224,14 @@ Value *ForNode::codegen(Context &C) {
   Builder.SetInsertPoint(BeforeLoopBB);
 
   auto CondV = End->codegen(C);
+  if (!CondV)
+      return nullptr;
 
-  assert(CondV);
+  auto CondTy = Type::from(CondV->getType());
+  if (!CondTy) {
+      Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '" << Type::boolTy().str() << "'";
+      return nullptr;
+  }
 
   Builder.CreateCondBr(CondV, LoopBB, AfterLoopBB);
 

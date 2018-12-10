@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true" buildAllGenerated="true">
     <generated>
-      <config projectName="grace" targetName="grace" />
       <config projectName="grace" targetName="intrinsics_gen" />
+      <config projectName="grace" targetName="grace" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="true">
@@ -13,15 +13,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="10988de1-892a-4173-8069-692c3a598f96" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Log.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Codegen.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Codegen.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Type.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Type.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/function_test.gr" beforeDir="false" afterPath="$PROJECT_DIR$/examples/function_test.gr" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Log.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/Log.hh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/Type.hh" beforeDir="false" afterPath="$PROJECT_DIR$/include/Type.hh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cc" beforeDir="false" afterPath="$PROJECT_DIR$/main.cc" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -35,25 +29,25 @@
     <session id="935229002">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="16" />
+          <entry key="project.closed" value="17" />
           <entry key="project.open.time.1" value="2" />
-          <entry key="project.open.time.10" value="4" />
+          <entry key="project.open.time.10" value="5" />
           <entry key="project.open.time.11" value="2" />
           <entry key="project.open.time.12" value="1" />
           <entry key="project.open.time.8" value="2" />
           <entry key="project.open.time.9" value="5" />
-          <entry key="project.opened" value="16" />
+          <entry key="project.opened" value="17" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="cc" value="63" />
+          <entry key="cc" value="66" />
           <entry key="clang-format" value="1" />
           <entry key="cz" value="7" />
           <entry key="gc" value="1" />
           <entry key="gr" value="15" />
           <entry key="h" value="75" />
-          <entry key="hh" value="97" />
+          <entry key="hh" value="99" />
           <entry key="list" value="1" />
           <entry key="ll" value="7" />
           <entry key="ostream" value="1" />
@@ -65,18 +59,18 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="CMakeLists.txt" value="6" />
-          <entry key="ObjectiveC" value="240" />
+          <entry key="ObjectiveC" value="245" />
           <entry key="PLAIN_TEXT" value="42" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="cc" value="14541" />
+          <entry key="cc" value="15017" />
           <entry key="cz" value="5" />
           <entry key="gc" value="4" />
           <entry key="gr" value="830" />
           <entry key="h" value="3" />
-          <entry key="hh" value="7285" />
+          <entry key="hh" value="7507" />
           <entry key="ll" value="165" />
           <entry key="mm" value="12" />
           <entry key="txt" value="242" />
@@ -86,7 +80,7 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="CMakeLists.txt" value="113" />
-          <entry key="ObjectiveC" value="21841" />
+          <entry key="ObjectiveC" value="22539" />
           <entry key="PLAIN_TEXT" value="2726" />
         </counts>
       </usages-collector>
@@ -97,10 +91,31 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Codegen.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="468">
-              <caret line="318" selection-start-line="318" selection-end-line="318" />
+            <state relative-caret-position="206">
+              <caret line="231" column="99" selection-start-line="231" selection-start-column="99" selection-end-line="231" selection-end-column="99" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Type.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="248">
+              <caret line="57" column="1" lean-forward="true" selection-start-line="57" selection-start-column="1" selection-end-line="57" selection-end-column="1" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/Type.hh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="25" column="23" selection-start-line="25" selection-start-column="23" selection-end-line="25" selection-end-column="23" />
+              <folding>
+                <element signature="e#63#80#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -124,13 +139,9 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/function_test.gr">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="6" selection-start-line="12" selection-start-column="6" selection-end-line="12" selection-end-column="6" />
-            </state>
-          </provider>
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -215,14 +226,14 @@
         <option value="$PROJECT_DIR$/BinOp.cc" />
         <option value="$PROJECT_DIR$/include/BinOp.hh" />
         <option value="$PROJECT_DIR$/include/AST.hh" />
-        <option value="$PROJECT_DIR$/include/Type.hh" />
-        <option value="$PROJECT_DIR$/Type.cc" />
-        <option value="$PROJECT_DIR$/Codegen.cc" />
         <option value="$PROJECT_DIR$/Log.cc" />
         <option value="$PROJECT_DIR$/include/Log.hh" />
         <option value="$PROJECT_DIR$/main.cc" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/examples/function_test.gr" />
+        <option value="$PROJECT_DIR$/Codegen.cc" />
+        <option value="$PROJECT_DIR$/include/Type.hh" />
+        <option value="$PROJECT_DIR$/Type.cc" />
       </list>
     </option>
   </component>
@@ -404,6 +415,7 @@
       <workItem from="1544205387959" duration="8937000" />
       <workItem from="1544215636035" duration="13499000" />
       <workItem from="1544267793105" duration="9780000" />
+      <workItem from="1544442277986" duration="3080000" />
     </task>
     <task id="LOCAL-00001" summary="Implementing IR generation for function">
       <created>1542926016525</created>
@@ -437,7 +449,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="68493000" />
+    <option name="totallyTimeSpent" value="71573000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -450,20 +462,19 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-2560" y="23" width="1706" height="1057" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2235577" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22596154" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3284974" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.33678755" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.33678755" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.31917098" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32941177" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Messages" order="8" sideWeight="0.49939904" weight="0.4134715" />
+      <window_info active="true" anchor="bottom" id="Messages" order="8" sideWeight="0.49939904" visible="true" weight="0.4134715" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.32941177" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50060093" side_tool="true" weight="0.25492227" />
       <window_info anchor="bottom" id="Version Control" order="11" show_stripe_button="false" />
@@ -515,6 +526,17 @@
     <option name="LAST_COMMIT_MESSAGE" value="while loop IR generated" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/Codegen.cc</url>
+          <line>229</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="debuggerHistoryManager">
     <expressions id="evaluateExpression">
@@ -717,11 +739,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/Types.hh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-86" />
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Types.hh" />
     <entry file="file:///usr/local/opt/llvm/include/llvm/Support/TargetRegistry.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="301">
@@ -757,13 +775,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BinOp.hh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/BinOp.hh" />
     <entry file="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ostream">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-3902" />
@@ -805,23 +817,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Type.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="497">
-          <caret line="55" lean-forward="true" selection-start-line="55" selection-end-line="55" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Type.hh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="386">
-          <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
-          <folding>
-            <element signature="e#63#80#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Log.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -843,6 +838,9 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/examples/function_test.gr">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/BinOp.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
@@ -859,18 +857,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Codegen.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="318" selection-start-line="318" selection-end-line="318" />
+        <state relative-caret-position="206">
+          <caret line="231" column="99" selection-start-line="231" selection-start-column="99" selection-end-line="231" selection-end-column="99" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/function_test.gr">
+    <entry file="file://$PROJECT_DIR$/include/Type.hh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="6" selection-start-line="12" selection-start-column="6" selection-end-line="12" selection-end-column="6" />
+        <state relative-caret-position="221">
+          <caret line="25" column="23" selection-start-line="25" selection-start-column="23" selection-end-line="25" selection-end-column="23" />
+          <folding>
+            <element signature="e#63#80#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Type.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="248">
+          <caret line="57" column="1" lean-forward="true" selection-start-line="57" selection-start-column="1" selection-end-line="57" selection-end-column="1" />
         </state>
       </provider>
     </entry>

@@ -22,6 +22,8 @@ public:
   virtual std::string str() = 0;
 
   static Type *from(llvm::Type *Ty);
+  static Type &boolTy();
+  static Type &intTy();
 
   bool operator==(const Type &Other);
   bool operator!=(const Type &Other);
@@ -29,6 +31,10 @@ public:
   bool isIntTy() const;
   bool isBoolTy() const;
   bool isStringTy() const;
+
+private:
+  static Type *IntTy;
+  static Type *BoolTy;
 };
 
 class IntType : public Type {
