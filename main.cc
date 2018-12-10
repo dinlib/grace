@@ -1,9 +1,16 @@
 #include "Context.hh"
 #include "Driver.hh"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetMachine.h"
+#include <iostream>
 
 int main(int argc, char **argv) {
-  int res = 0;
   Driver drv;
+
   for (int i = 1; i < argc; ++i) {
     if (argv[i] == std::string("-p")) {
       drv.trace_parsing = true;
@@ -16,17 +23,69 @@ int main(int argc, char **argv) {
     } else if (!drv.parse(argv[i])) {
       if (drv.dump_ast)
         drv.program->dumpAST(std::cout, 0);
-    } else {
-      res = 1;
     }
   }
 
   Context C;
   drv.program->codegen(C);
 
+  if (hasError)
+    return 1;
+
   if (drv.dump_ir) {
     C.dumpIR();
   }
 
-  return res;
+  verifyModule(C.getModule());
+
+  InitializeAllTargetInfos();
+  InitializeAllTargets();
+  InitializeAllTargetMCs();
+  InitializeAllAsmParsers();
+  InitializeAllAsmPrinters();
+
+  auto TargetTriple = sys::getDefaultTargetTriple();
+  C.getModule().setTargetTriple(TargetTriple);
+
+  std::string Error;
+  auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+
+  if (!Target) {
+    errs() << Error;
+    return -1;
+  }
+
+  auto CPU = "generic";
+  auto Features = "";
+
+  TargetOptions Opt;
+  auto RM = Optional<Reloc::Model>();
+  auto TheTargetMachine =
+      Target->createTargetMachine(TargetTriple, CPU, Features, Opt, RM);
+
+  C.getModule().setDataLayout(TheTargetMachine->createDataLayout());
+
+  auto Filename = "output.o";
+  std::error_code EC;
+  raw_fd_ostream dest(Filename, EC, sys::fs::F_None);
+
+  if (EC) {
+    errs() << "Could not open file: " << EC.message();
+    return 1;
+  }
+
+  legacy::PassManager Pass;
+  auto FileType = TargetMachine::CGFT_ObjectFile;
+
+  if (TheTargetMachine->addPassesToEmitFile(Pass, dest, nullptr, FileType)) {
+    errs() << "TheTargetMachine can't emit a file of this type";
+    return 1;
+  }
+
+  Pass.run(C.getModule());
+  dest.flush();
+
+  outs() << "Wrote " << Filename << "\n";
+
+  return 0;
 }

@@ -1,9 +1,9 @@
+#include "Context.hh"
+#include "iostream"
 #include "llvm/IR/Verifier.h"
-#include <AST.hh>
-#include <Error.hh>
-#include <iostream>
 
 using namespace llvm;
+using namespace grace;
 
 /// LogError* - These are little helper functions for error handling.
 Node *LogError(const char *Str) {
@@ -11,19 +11,15 @@ Node *LogError(const char *Str) {
   return nullptr;
 }
 
-Value *LogErrorV(const char *Str) {
-  LogError(Str);
-  return nullptr;
-}
-
 /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
 /// the function.  This is used for mutable variables etc.
 static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
                                           LLVMContext &TheContext,
-                                          const std::string &Name, Type *T) {
+                                          const std::string &Name,
+                                          llvm::Type *T) {
   IRBuilder<> TmpB(&TheFunction->getEntryBlock(),
                    TheFunction->getEntryBlock().begin());
-  return TmpB.CreateAlloca(T, nullptr, Name.c_str());
+  return TmpB.CreateAlloca(T, nullptr, Name);
 }
 
 Value *BlockNode::codegen(Context &C) {
@@ -87,17 +83,16 @@ Value *FuncDeclNode::codegen(Context &C) {
     return nullptr;
   }
 
-  C.enterScope();
+  C.ST.enterScope();
 
   // Create vector with llvm types for args.
-  std::vector<Type *> ArgsType;
+  std::vector<llvm::Type *> ArgsType;
   ArgsType.reserve(Args->size());
   for (auto Arg : *Args)
-    ArgsType.push_back(C.getLLVMType(Arg->Type));
+    ArgsType.push_back(Arg->Ty->emit(C));
 
   // Create function signature.
-  FunctionType *FT =
-      FunctionType::get(C.getLLVMType(ReturnType), ArgsType, false);
+  FunctionType *FT = FunctionType::get(ReturnTy->emit(C), ArgsType, false);
   F = Function::Create(FT, GlobalValue::LinkageTypes::ExternalLinkage, Name,
                        &C.getModule());
 
@@ -110,13 +105,14 @@ Value *FuncDeclNode::codegen(Context &C) {
   C.getBuilder().SetInsertPoint(BB);
 
   // insert args into scope
+  Idx = 0;
   for (auto &Arg : F->args()) {
     AllocaInst *Alloca =
         CreateEntryBlockAlloca(F, C.getContext(), Arg.getName(), Arg.getType());
 
     C.getBuilder().CreateStore(&Arg, Alloca);
 
-    C.insertNamedValueIntoScope(Arg.getName(), Alloca);
+    C.ST.set(Arg.getName(), new VariableSymbol(Alloca, (*Args)[Idx++]->Ty));
   }
 
   // generate function body
@@ -124,7 +120,7 @@ Value *FuncDeclNode::codegen(Context &C) {
   C.ReturnFound = false;
   Body->codegen(C);
 
-  C.leaveScope();
+  C.ST.leaveScope();
 
   if (!C.ReturnFound) {
     Log::warning(0, 0) << "expected a return statement inside function body, "
@@ -136,25 +132,44 @@ Value *FuncDeclNode::codegen(Context &C) {
 }
 
 Value *VarDeclNode::codegen(Context &C) {
-  if (C.getNamedValueInScope(Id)) {
-    // ::Error::typeMismatch("asfas", "asdfasdf");
+  if (C.ST.get(Id)) {
     Log::error(0, 0) << "variable " << Id << " already declared.\n";
     return nullptr;
   }
 
   Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
 
-  AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(), Id,
-                                              C.getLLVMType(Type));
+  AllocaInst *Alloca =
+      CreateEntryBlockAlloca(TheFunction, C.getContext(), Id, Ty->emit(C));
+
+  C.ST.set(Id, new VariableSymbol(Alloca, Ty));
 
   if (Assign) {
     Assign->codegen(C);
   }
 
-  C.insertNamedValueIntoScope(Id, Alloca);
-
   return nullptr;
 }
+
+// Value *ArrayDeclNode::codegen(Context &C) {
+//    if (C.ST.get(Id)) {
+//        Log::error(0, 0) << "variable " << Id << " already declared.\n";
+//        return nullptr;
+//    }
+//
+//    Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
+//
+//    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(),
+//    Id, Ty->emit(C));
+//
+//    C.ST.set(Id, new ArraySymbol(Alloca, dynamic_cast<ArrayType *>(Ty)));
+//
+//    if (Assign) {
+//        Assign->codegen(C);
+//    }
+//
+//    return nullptr;
+//}
 
 Value *ReturnNode::codegen(Context &C) {
   C.ReturnFound = true;
@@ -168,87 +183,143 @@ Value *ReturnNode::codegen(Context &C) {
 }
 
 Value *SkipNode::codegen(Context &C) {
-  std::cout << "SkipNode unimplemented" << std::endl;
+  auto Sym = dynamic_cast<BlockSymbol *>(C.ST.get("skip"));
 
-  if (!C.IsInsideLoop)
+  if (!Sym)
     Log::error(0, 0) << "skip command can appear only inside loops.\n";
-
-  // TODO: implement
+  else
+    C.getBuilder().CreateBr(Sym->BB);
 
   return nullptr;
 }
 
 Value *StopNode::codegen(Context &C) {
-  if (!C.IsInsideLoop)
-    Log::error(0, 0) << "stop command can appear only inside loops.\n";
+  auto Sym = dynamic_cast<BlockSymbol *>(C.ST.get("stop"));
 
-  // TODO: implement
+  if (!Sym)
+    Log::error(0, 0) << "stop command can appear only inside loops.\n";
+  else
+    C.getBuilder().CreateBr(Sym->BB);
 
   return nullptr;
 }
 
 Value *ForNode::codegen(Context &C) {
-  std::cout << "ForNode unimplemented" << std::endl;
+  auto &Builder = C.getBuilder();
+  auto &TheContext = C.getContext();
+  auto TheFunction = Builder.GetInsertBlock()->getParent();
 
-  C.IsInsideLoop = true;
+  auto BeforeLoopBB =
+      BasicBlock::Create(TheContext, "before_loop", TheFunction);
+  auto LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
+  auto StepBB = BasicBlock::Create(TheContext, "step", TheFunction);
+  auto AfterLoopBB = BasicBlock::Create(TheContext, "after_loop", TheFunction);
 
-  forBlock->codegen(C);
+  C.ST.set("skip", new BlockSymbol(StepBB));
+  C.ST.set("stop", new BlockSymbol(AfterLoopBB));
 
-  C.IsInsideLoop = false;
+  Start->codegen(C);
+
+  Builder.CreateBr(BeforeLoopBB);
+
+  Builder.SetInsertPoint(BeforeLoopBB);
+
+  auto CondV = End->codegen(C);
+  if (!CondV)
+      return nullptr;
+
+  auto CondTy = Type::from(CondV->getType());
+  if (!CondTy) {
+      Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '" << Type::boolTy()->str() << "'";
+      return nullptr;
+  }
+
+  Builder.CreateCondBr(CondV, LoopBB, AfterLoopBB);
+
+  Builder.SetInsertPoint(LoopBB);
+
+  C.ST.enterScope();
+  Body->codegen(C);
+  C.ST.leaveScope();
+
+  Builder.SetInsertPoint(StepBB);
+  Step->codegen(C);
+
+  Builder.CreateBr(BeforeLoopBB);
+
+  Builder.SetInsertPoint(AfterLoopBB);
 
   return nullptr;
 }
 
 Value *WhileNode::codegen(Context &C) {
-  std::cout << "WhileNode unimplemented" << std::endl;
+  auto &Builder = C.getBuilder();
+  auto &TheContext = C.getContext();
 
-  // TODO: implement
+  auto TheFunction = Builder.GetInsertBlock()->getParent();
 
-  C.IsInsideLoop = true;
+  auto BeforeLoopBB =
+      BasicBlock::Create(TheContext, "before_loop", TheFunction);
+  auto LoopBB = BasicBlock::Create(TheContext, "loop", TheFunction);
+  auto AfterLoopBB = BasicBlock::Create(TheContext, "after_loop", TheFunction);
 
+  C.ST.set("skip", new BlockSymbol(LoopBB));
+  C.ST.set("stop", new BlockSymbol(AfterLoopBB));
+
+  Builder.CreateBr(BeforeLoopBB);
+  Builder.SetInsertPoint(BeforeLoopBB);
+
+  auto CondV = Condition->codegen(C);
+  assert(CondV);
+
+  Builder.CreateCondBr(CondV, LoopBB, AfterLoopBB);
+
+  Builder.SetInsertPoint(LoopBB);
+
+  C.ST.enterScope();
   Block->codegen(C);
+  C.ST.leaveScope();
 
-  C.IsInsideLoop = false;
+  Builder.CreateBr(BeforeLoopBB);
+
+  Builder.SetInsertPoint(AfterLoopBB);
 
   return nullptr;
 }
 
-Value *ExprIdentifierNode::codegen(Context &C) {
-  AllocaInst *Alloca = C.getNamedValueInScope(Id);
-  if (!Alloca) {
+Value *VariableExprNode::codegen(Context &C) {
+  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+  if (!Sym) {
     Log::error(0, 0) << "variable " << Id << " not found.\n";
     return nullptr;
   }
 
-  return C.getBuilder().CreateLoad(Alloca, Id);
+  return C.getBuilder().CreateLoad(Sym->Alloca, Id);
 }
 
 Value *LiteralStringNode::codegen(Context &C) {
   return C.getBuilder().CreateGlobalStringPtr(Str);
 }
 
-Value *ArrayAssignNode::codegen(Context &C) {
-  std::cout << "ArrayAssignNode unimplemented" << std::endl;
-  return nullptr;
-}
-
-Value *AssignSimpleNode::codegen(Context &C) {
-  AllocaInst *Alloca = C.getNamedValueInScope(Id);
-  if (!Alloca)
+llvm::Value *AssignNode::codegen(Context &C) {
+  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
+  if (!Sym)
     return nullptr;
 
-  Value *Store = expr->codegen(C);
+  Value *Store = Assign->codegen(C);
+  if (!Store)
+    return nullptr;
 
-  Type *AllocaTy = Alloca->getAllocatedType();
-  Type *StoreTy = Store->getType();
+  auto AssignTy = Type::from(Store->getType());
+  auto DeclaredTy = Sym->Ty;
 
-  if (!C.typeCheck(AllocaTy, StoreTy)) {
-    Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
-                     << "', expected '" << C.getType(AllocaTy) << "'\n";
+  if (*AssignTy != *DeclaredTy) {
+    Log::error(0, 0) << "cannot assign value of type '" << AssignTy->str()
+                     << "', expected '" << DeclaredTy->str() << "'\n";
     return nullptr;
   }
 
-  C.getBuilder().CreateStore(Store, Alloca);
+  C.getBuilder().CreateStore(Store, Sym->Alloca);
 
   return Store;
 }
@@ -276,27 +347,27 @@ Value *ExprOperationNode::codegen(Context &C) {
 
   switch (Op) {
   case BinOp::PLUS:
-    return C.getBuilder().CreateAdd(LHSV, RHSV, "addtmp");
+    return C.getBuilder().CreateAdd(LHSV, RHSV);
   case BinOp::MINUS:
-    return C.getBuilder().CreateSub(LHSV, RHSV, "subtmp");
+    return C.getBuilder().CreateSub(LHSV, RHSV);
   case BinOp::TIMES:
-    return C.getBuilder().CreateMul(LHSV, RHSV, "multmp");
+    return C.getBuilder().CreateMul(LHSV, RHSV);
   case BinOp::DIV:
-    return C.getBuilder().CreateUDiv(LHSV, RHSV, "divtmp");
+    return C.getBuilder().CreateUDiv(LHSV, RHSV);
   case BinOp::MOD:
     return C.getBuilder().CreateURem(LHSV, RHSV, "modtmp");
   case BinOp::LT:
-    return C.getBuilder().CreateICmpSLT(LHSV, RHSV, "slttemp");
+    return C.getBuilder().CreateICmpSLT(LHSV, RHSV);
   case BinOp::LTEQ:
-    return C.getBuilder().CreateICmpSLE(LHSV, RHSV, "sletmp");
+    return C.getBuilder().CreateICmpSLE(LHSV, RHSV);
   case BinOp::GT:
-    return C.getBuilder().CreateICmpSGT(LHSV, RHSV, "sgttmp");
+    return C.getBuilder().CreateICmpSGT(LHSV, RHSV);
   case BinOp::GTEQ:
-    return C.getBuilder().CreateICmpSGE(LHSV, RHSV, "sgetmp");
+    return C.getBuilder().CreateICmpSGE(LHSV, RHSV);
   case BinOp::EQ:
-    return C.getBuilder().CreateICmpEQ(LHSV, RHSV, "eqtmp");
+    return C.getBuilder().CreateICmpEQ(LHSV, RHSV);
   case BinOp::DIFF:
-    return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");
+    return C.getBuilder().CreateICmpNE(LHSV, RHSV);
   case BinOp::AND:
     return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
   case BinOp::OR:
@@ -335,73 +406,76 @@ Value *ProcDeclNode::codegen(Context &C) {
 }
 
 Value *WriteNode::codegen(Context &C) {
-  std::vector<Value *> Values;
-  Values.reserve(Exprs->size());
-
-  Function *Printf = C.getModule().getFunction("printf");
-  if (!Printf) {
-    FunctionType *FuncTy =
-        FunctionType::get(IntegerType::get(C.getContext(), 32), true);
-
-    Printf = Function::Create(FuncTy, GlobalValue::ExternalLinkage, "printf",
-                              &C.getModule());
-    Printf->setCallingConv(CallingConv::C);
-
-    AttributeList PrintfPAL;
-    Printf->setAttributes(PrintfPAL);
-  }
-
-  Value *StrFormat = C.getBuilder().CreateGlobalStringPtr(Format);
-  Values.push_back(StrFormat);
-
-  for (auto Expr : *Exprs)
-    Values.push_back(Expr->codegen(C));
-
-  C.getBuilder().CreateCall(Printf, Values, "callprintf");
+  //  std::vector<Value *> Values;
+  //  Values.reserve(Exprs->size());
+  //
+  //  Function *Printf = C.getModule().getFunction("printf");
+  //  if (!Printf) {
+  //    FunctionType *FuncTy =
+  //        FunctionType::get(IntegerType::get(C.getContext(), 32), true);
+  //
+  //    Printf = Function::Create(FuncTy, GlobalValue::ExternalLinkage,
+  //    "printf",
+  //                              &C.getModule());
+  //    Printf->setCallingConv(CallingConv::C);
+  //
+  //    AttributeList PrintfPAL;
+  //    Printf->setAttributes(PrintfPAL);
+  //  }
+  //
+  //  Value *StrFormat = C.getBuilder().CreateGlobalStringPtr(Format);
+  //  Values.push_back(StrFormat);
+  //
+  //  for (auto Expr : *Exprs)
+  //    Values.push_back(Expr->codegen(C));
+  //
+  //  C.getBuilder().CreateCall(Printf, Values, "callprintf");
 
   return nullptr;
 }
 
 Value *CompoundAssignNode::codegen(Context &C) {
-  // std::cout << "CompoundAssigmentNode unimplemented" << std::endl;
-  // return nullptr;
-  AllocaInst *Alloca = C.getNamedValueInScope(Id);
+  auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
 
-  if (!Alloca) {
+  if (!Sym) {
     Log::error(0, 0) << "variable " << Id << " not declared in this scope.\n";
     return nullptr;
   }
 
-  Value *Store = expr->codegen(C);
-
-  Type *AllocaTy = Alloca->getAllocatedType();
-  Type *StoreTy = Store->getType();
-
-  if (!C.typeCheck(AllocaTy, StoreTy)) {
-    Log::error(0, 0) << "cannot assign value of type '" << C.getType(StoreTy)
-                     << "', expected '" << C.getType(AllocaTy) << "'\n";
-    return nullptr;
-  }
+  auto Alloca = Sym->Alloca;
+  Value *Store = Assign->codegen(C);
+  //
+  //  Type *AllocaTy = Alloca->getAllocatedType();
+  //  Type *StoreTy = Store->getType();
+  //
+  //  if (!C.typeCheck(AllocaTy, StoreTy)) {
+  //    Log::error(0, 0) << "cannot assign value of type '" <<
+  //    C.getType(StoreTy)
+  //                     << "', expected '" << C.getType(AllocaTy) << "'\n";
+  //    return nullptr;
+  //  }
 
   Value *AllocaValue = C.getBuilder().CreateLoad(Alloca, Id);
   Value *Result = nullptr;
 
   switch (Op) {
   case BinOp::PLUS:
-    Result = C.getBuilder().CreateAdd(Store, AllocaValue, "addtmp");
+    Result = C.getBuilder().CreateAdd(Store, AllocaValue);
     C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::MINUS:
-    Result = C.getBuilder().CreateSub(Store, AllocaValue, "subtmp");
+    Result = C.getBuilder().CreateSub(Store, AllocaValue);
     C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::TIMES:
-    Result = C.getBuilder().CreateMul(Store, AllocaValue, "multmp");
+    Result = C.getBuilder().CreateMul(Store, AllocaValue);
     C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::DIV:
-    Result = C.getBuilder().CreateUDiv(Store, AllocaValue, "divtmp");
+    Result = C.getBuilder().CreateUDiv(Store, AllocaValue);
     C.getBuilder().CreateStore(Result, Alloca);
     break;
   }
+
+  return nullptr;
 }

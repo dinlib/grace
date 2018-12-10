@@ -4,13 +4,21 @@ def sum(x: int, y: int): int {
 }
 
 def main(): int {
-    var x = 4, y = 30: int;
-    var z = 2: int;
+    var x, y, z, i: int;
+    var b: bool;
 
+    x = 2;
+    y = 6;
 
-    z += sum(x, y);
+    //b = y;
 
-    write "%d\n" % z;
+    while (z > 10) {
+        z = z - x;
+
+        for (i = 0; i < 10; i = i + 1) {
+            z = sum(sum(x, y), 100 * i);
+        }
+    }
 
     return 0;
 }

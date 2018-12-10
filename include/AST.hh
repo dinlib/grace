@@ -1,27 +1,59 @@
+
 #pragma once
 
 #include "BinOp.hh"
-#include "Context.hh"
-#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 #include <fstream>
 #include <string>
+#include <utility>
 #include <vector>
 
-using namespace llvm;
+namespace grace {
+
+class Context;
+
+class Type;
 
 static std::string NestedLevel(unsigned level) {
   std::string str(level * 4, ' ');
   return str;
 }
 
+static std::string to_string(const BinOp &Op) {
+  switch (Op) {
+  case BinOp::PLUS:
+    return "+";
+  case BinOp::MINUS:
+    return "-";
+  case BinOp::TIMES:
+    return "*";
+  case BinOp::DIV:
+    return "/";
+  case BinOp::MOD:
+    return "%";
+  case BinOp::LT:
+    return "<";
+  case BinOp::LTEQ:
+    return "<=";
+  case BinOp::GT:
+    return ">";
+  case BinOp::GTEQ:
+    return ">=";
+  case BinOp::EQ:
+    return "==";
+  case BinOp::DIFF:
+    return "!=";
+  case BinOp::AND:
+    return "&&";
+  case BinOp::OR:
+    return "||";
+  }
+}
+
 class StmtNode;
-
 class VarDeclNode;
-
 class SpecVar;
-
 class LiteralNode;
-
 class ExprNode;
 
 typedef std::vector<StmtNode *> StmtList;
@@ -32,15 +64,12 @@ typedef std::vector<LiteralNode *> LiteralNodeList;
 class Param {
 public:
   std::string Id;
-  std::string Type;
-  bool IsArray;
+  Type *Ty;
 
-  Param(const std::string &Id, const std::string &Type, bool IsArray)
-      : Id(Id), Type(Type), IsArray(IsArray) {}
+  Param(std::string Id, Type *Ty) : Id(std::move(Id)), Ty(Ty) {}
 };
 
 typedef std::vector<Param *> ParamList;
-
 typedef std::vector<ExprNode *> ExprList;
 
 class Node {
@@ -49,7 +78,7 @@ public:
 
   virtual void dumpAST(std::ostream &os, unsigned level) const = 0;
 
-  virtual Value *codegen(Context &C) = 0;
+  virtual llvm::Value *codegen(Context &C) = 0;
 };
 
 class StmtNode : public Node {};
@@ -70,138 +99,106 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class AssignNode : public StmtNode {
-public:
+protected:
   std::string Id;
+  ExprNode *Assign;
 
-  AssignNode(std::string Id) : Id(std::move(Id)) {}
-};
-
-class AssignSimpleNode : public AssignNode {
 public:
-  ExprNode *expr;
-
-  AssignSimpleNode(const std::string &id, ExprNode *expr)
-      : AssignNode(id), expr(expr) {}
+  AssignNode(std::string Id, ExprNode *Assign)
+      : Id(std::move(Id)), Assign(Assign) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(Assign id: " << Id
        << "; value: " << std::endl;
-    expr->dumpAST(os, level + 1);
+    Assign->dumpAST(os, level + 1);
     os << std::endl << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class CompoundAssignNode : public AssignNode {
 public:
-  ExprNode *expr;
   BinOp Op;
 
-  CompoundAssignNode(const std::string &id, BinOp Op, ExprNode *expr)
-      : AssignNode(id), Op(Op), expr(expr) {}
+  CompoundAssignNode(std::string id, BinOp Op, ExprNode *Assign)
+      : AssignNode(id, Assign), Op(Op) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(assing id: " << Id
        << "; value: " << std::endl;
-    //        os << Op << std::endl;
-    expr->dumpAST(os, level + 1);
+    os << to_string(Op) << std::endl;
+    Assign->dumpAST(os, level + 1);
   }
 
-  Value *codegen(Context &C) override;
-};
-
-class ArrayAssignNode : public AssignNode {
-public:
-  LiteralNodeList *literalList;
-
-  ArrayAssignNode(const std::string &id,
-                  std::vector<LiteralNode *> *literalList)
-      : AssignNode(id), literalList(literalList) {}
-
-  void dumpAST(std::ostream &os, unsigned level) const override {
-    os << NestedLevel(level) << "(Assign id: " << Id << "; value: " << std::endl
-       << NestedLevel(level + 1) << "[" << std::endl;
-
-    for (auto lit : *literalList) {
-      lit->dumpAST(os, level + 2);
-      os << "," << std::endl;
-    }
-
-    os << NestedLevel(level + 1) << "]" << std::endl;
-  }
-
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class LiteralIntNode : public LiteralNode {
 public:
   int IVal;
 
-  LiteralIntNode(int value) : IVal(value) {}
+  explicit LiteralIntNode(int value) : IVal(value) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << IVal << ")";
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class LiteralStringNode : public LiteralNode {
 public:
   std::string Str;
 
-  LiteralStringNode(const std::string &Str) : Str(Str) {}
+  explicit LiteralStringNode(const std::string &Str) : Str(Str) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << Str << ")";
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class LiteralBoolNode : public LiteralNode {
 public:
   bool BVal;
 
-  LiteralBoolNode(bool BVal) : BVal(BVal) {}
+  explicit LiteralBoolNode(bool BVal) : BVal(BVal) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << std::boolalpha << BVal
        << ")";
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class SpecVar {
 public:
   std::string Id;
-  unsigned Size;
   AssignNode *Assign;
 
-  SpecVar(const std::string &Id, unsigned Size, AssignNode *Assign)
-      : Id(Id), Size(Size), Assign(Assign) {}
+  SpecVar(std::string Id, AssignNode *Assign)
+      : Id(std::move(Id)), Assign(Assign) {}
 };
 
 class VarDeclNode : public StmtNode {
+protected:
   std::string Id;
-  unsigned Size;
   AssignNode *Assign;
-  std::string Type;
+  Type *Ty;
 
 public:
-  VarDeclNode(const std::string &Id, unsigned Size, AssignNode *Assign,
-              const std::string &Type)
-      : Id(Id), Size(Size), Assign(Assign), Type(Type) {}
+  VarDeclNode(std::string Id, AssignNode *Assign, Type *Ty)
+      : Id(std::move(Id)), Assign(Assign), Ty(Ty) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
-    os << NestedLevel(level) << "(varDecl id: " << Id << "; Size: " << Size
-       << "; type: " << Type;
+    os << NestedLevel(level) << "(varDecl id: " << Id << "; type: " << Ty;
 
     if (Assign) {
       os << std::endl;
@@ -212,7 +209,7 @@ public:
     os << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class VarDeclNodeListStmt : public StmtNode {
@@ -224,28 +221,28 @@ public:
       varDecl->dumpAST(os, level);
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class FuncDeclNode : public StmtNode {
   std::string Name;
-  std::string ReturnType;
+  Type *ReturnTy;
   ParamList *Args;
   BlockNode *Body;
 
 public:
-  FuncDeclNode(const std::string &Name, const std::string &ReturnType,
-               ParamList *Args, BlockNode *Body)
-      : Name(Name), ReturnType(ReturnType), Args(Args), Body(Body) {}
+  FuncDeclNode(std::string Name, Type *ReturnTy, ParamList *Args,
+               BlockNode *Body)
+      : Name(std::move(Name)), ReturnTy(ReturnTy), Args(Args), Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(function Name: " << Name
-       << "; ReturnType: " << ReturnType << std::endl;
+       << "; ReturnType: " << ReturnTy << std::endl;
     Body->dumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class ProcDeclNode : public StmtNode {
@@ -254,8 +251,8 @@ class ProcDeclNode : public StmtNode {
   BlockNode *Body;
 
 public:
-  ProcDeclNode(const std::string &Name, ParamList *Args, BlockNode *Body)
-      : Name(Name), Args(Args), Body(Body) {}
+  ProcDeclNode(std::string Name, ParamList *Args, BlockNode *Body)
+      : Name(std::move(Name)), Args(Args), Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(function Name: " << Name << "; ReturnType: "
@@ -264,7 +261,7 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class IfThenElseNode : public StmtNode {
@@ -280,32 +277,33 @@ public:
     Condition->dumpAST(os, level + 1);
     os << std::endl;
     Then->dumpAST(os, level + 1);
-    if (Else != NULL)
+    if (Else != nullptr)
       Else->dumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
-class ExprIdentifierNode : public ExprNode {
+class VariableExprNode : public ExprNode {
+protected:
   std::string Id;
 
 public:
-  ExprIdentifierNode(const std::string &Id) : Id(Id) {}
+  explicit VariableExprNode(std::string Id) : Id(std::move(Id)) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(var " << Id << " )" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class ExprNegativeNode : public ExprNode {
   ExprNode *RHS;
 
 public:
-  ExprNegativeNode(ExprNode *RHS) : RHS(RHS) {}
+  explicit ExprNegativeNode(ExprNode *RHS) : RHS(RHS) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(-" << std::endl;
@@ -313,7 +311,7 @@ public:
     os << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class ExprNotNode : public ExprNode {
@@ -321,15 +319,15 @@ class ExprNotNode : public ExprNode {
 
 public:
   ExprNotNode(ExprNode *RHS) : RHS(RHS) {}
-  
+
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(NOT " << std::endl;
     RHS->dumpAST(os, level + 1);
     os << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
-  
+  llvm::Value *codegen(Context &C) override;
+
 };
 
 class ExprOperationNode : public ExprNode {
@@ -343,12 +341,12 @@ public:
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(expr" << std::endl;
     LHS->dumpAST(os, level + 1);
-    //        os << Op << std::endl;
+    os << to_string(Op) << std::endl;
     RHS->dumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class CallExprNode : public ExprNode {
@@ -356,8 +354,8 @@ class CallExprNode : public ExprNode {
   ExprList *Args;
 
 public:
-  CallExprNode(const std::string &Callee, ExprList *Args)
-      : Callee(Callee), Args(Args) {}
+  CallExprNode(std::string Callee, ExprList *Args)
+      : Callee(std::move(Callee)), Args(Args) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(call " << Callee << std::endl
@@ -371,7 +369,7 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class WhileNode : public StmtNode {
@@ -390,33 +388,32 @@ public:
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class ForNode : public StmtNode {
-  VarDeclNodeListStmt *initialization;
-  ExprNode *condition, *step;
-  BlockNode *forBlock;
+  AssignNode *Start;
+  ExprNode *End;
+  AssignNode *Step;
+  BlockNode *Body;
 
 public:
-  ForNode(VarDeclNodeListStmt *initialization, ExprNode *condition,
-          ExprNode *step, BlockNode *forBlock)
-      : initialization(initialization), condition(condition), step(step),
-        forBlock(forBlock) {}
+  ForNode(AssignNode *Start, ExprNode *End, AssignNode *Step, BlockNode *Body)
+      : Start(Start), End(End), Step(Step), Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(for" << std::endl;
-    initialization->dumpAST(os, level + 1);
+    Start->dumpAST(os, level + 1);
     os << std::endl;
-    condition->dumpAST(os, level + 1);
+    End->dumpAST(os, level + 1);
     os << std::endl;
-    step->dumpAST(os, level + 1);
+    Step->dumpAST(os, level + 1);
     os << std::endl;
-    forBlock->dumpAST(os, level + 1);
+    Body->dumpAST(os, level + 1);
     os << NestedLevel(level) << ")" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class ReturnNode : public StmtNode {
@@ -428,7 +425,7 @@ public:
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(return ";
 
-    if (expr != NULL) {
+    if (expr != nullptr) {
       os << std::endl;
       expr->dumpAST(os, level + 1);
       os << std::endl << NestedLevel(level) << ")" << std::endl;
@@ -437,7 +434,7 @@ public:
     }
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class StopNode : public StmtNode {
@@ -448,7 +445,7 @@ public:
     os << NestedLevel(level) << "(stop)" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class SkipNode : public StmtNode {
@@ -459,18 +456,18 @@ public:
     os << NestedLevel(level) << "(skip)" << std::endl;
   }
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
 
 class WriteNode : public StmtNode {
-  std::string Format;
   ExprList *Exprs;
 
 public:
-  WriteNode(const std::string &Format, ExprList *Exprs)
-      : Format(Format), Exprs(Exprs) {}
+  explicit WriteNode(ExprList *Exprs) : Exprs(Exprs) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {}
 
-  Value *codegen(Context &C) override;
+  llvm::Value *codegen(Context &C) override;
 };
+
+}; // namespace grace

@@ -3,60 +3,47 @@
 #include "Log.hh"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include <SymbolTable.hh>
 #include <list>
 #include <llvm/IR/PassManager.h>
 
-using namespace llvm;
-
+namespace grace {
 static const int INT_SIZE = 32;
 static const int BOOL_SIZE = 1;
 
 class Context {
-  LLVMContext TheContext;
-  IRBuilder<> TheBuilder;
-  Module TheModule;
-
-  //    std::unique_ptr<FunctionPassManager> FPM;
-
-  std::list<std::map<std::string, AllocaInst *>> NamedValues;
+  llvm::LLVMContext TheContext;
+  llvm::IRBuilder<> TheBuilder;
+  llvm::Module TheModule;
 
 public:
+  SymbolTable ST;
+
   Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
     ExpectReturn = false;
     ReturnFound = false;
-    IsInsideLoop = false;
 
-    enterScope();
+    // initialize global scope
+    ST.enterScope();
 
     initializePassManager();
   }
 
-  Module &getModule() { return TheModule; }
+  llvm::Module &getModule() { return TheModule; }
 
-  LLVMContext &getContext() { return TheModule.getContext(); }
+  llvm::LLVMContext &getContext() { return TheModule.getContext(); }
 
-  IRBuilder<> &getBuilder() { return TheBuilder; }
+  llvm::IRBuilder<> &getBuilder() { return TheBuilder; }
 
-  Type *getLLVMType(std::string &TypeRepresentation);
-
-  std::string getType(Type *T);
-
-  bool typeCheck(Type *A, Type *B);
+  bool typeCheck(llvm::Type *A, llvm::Type *B);
 
   void dumpIR() const { TheModule.print(errs(), nullptr); }
 
-  void enterScope();
-
-  void leaveScope();
-
-  void insertNamedValueIntoScope(const std::string &Name, AllocaInst *V);
-
-  AllocaInst *getNamedValueInScope(std::string &Name);
-
   bool ExpectReturn;
   bool ReturnFound;
-  bool IsInsideLoop;
 
 private:
   void initializePassManager() {}
 };
+
+}; // namespace grace
