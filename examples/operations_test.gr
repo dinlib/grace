@@ -1,0 +1,17 @@
+def main(): int {
+    var a = 5, b = 10: int;
+    var x: bool;
+
+    a = a + b;
+    a = a * b;
+    a = a / b;
+    a = a - b;
+    a = a % b;
+    
+    x = a < b;
+    x = a > b;
+    x = a <= b;
+    x = a >= b;
+
+    return 0;
+}

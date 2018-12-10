@@ -278,14 +278,19 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::DIV:
     return C.getBuilder().CreateUDiv(LHSV, RHSV, "divtmp");
   case BinOp::MOD:
+    return C.getBuilder().CreateURem(LHSV, RHSV, "modtmp");
     break;
   case BinOp::LT:
+    return C.getBuilder().CreateICmpSLT(LHSV, RHSV, "slttemp");
     break;
   case BinOp::LTEQ:
+    return C.getBuilder().CreateICmpSLE(LHSV, RHSV, "sletmp");
     break;
   case BinOp::GT:
+    return C.getBuilder().CreateICmpSGT(LHSV, RHSV, "sgttmp");
     break;
   case BinOp::GTEQ:
+    return C.getBuilder().CreateICmpSGE(LHSV, RHSV, "sgetmp");
     break;
   case BinOp::EQ:
     break;
