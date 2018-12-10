@@ -19,11 +19,11 @@ public:
   virtual ~Type() = default;
 
   virtual llvm::Type *emit(Context &C) = 0;
-  virtual std::string str() = 0;
+  virtual std::string str() const = 0;
 
   static Type *from(llvm::Type *Ty);
-  static Type &boolTy();
-  static Type &intTy();
+  static Type *boolTy();
+  static Type *intTy();
 
   bool operator==(const Type &Other);
   bool operator!=(const Type &Other);
@@ -31,28 +31,24 @@ public:
   bool isIntTy() const;
   bool isBoolTy() const;
   bool isStringTy() const;
-
-private:
-  static Type *IntTy;
-  static Type *BoolTy;
 };
 
 class IntType : public Type {
 public:
   llvm::Type *emit(Context &C) override;
-  std::string str() override { return "int"; }
+  std::string str() const override { return "int"; }
 };
 
 class BoolType : public Type {
 public:
   llvm::Type *emit(Context &C) override;
-  std::string str() override { return "bool"; }
+  std::string str() const override { return "bool"; }
 };
 
 class StringType : public Type {
 public:
   llvm::Type *emit(Context &C) override;
-  std::string str() override { return "string"; }
+  std::string str() const override { return "string"; }
 };
 
 }; // namespace grace

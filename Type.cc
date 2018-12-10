@@ -23,10 +23,10 @@ llvm::Type *StringType::emit(Context &C) {
 
 grace::Type *grace::Type::from(llvm::Type *Ty) {
   if (Ty->isIntegerTy(32))
-    return &intTy();
+    return intTy();
 
   if (Ty->isIntegerTy(1))
-    return &boolTy();
+    return boolTy();
 
   return nullptr;
 }
@@ -57,14 +57,10 @@ bool grace::Type::operator!=(const grace::Type &Other) {
   return !(*this == Other);
 }
 
-grace::Type &grace::Type::boolTy() {
-  if (!BoolTy)
-    BoolTy = new BoolType();
-  return *BoolTy;
+ grace::Type *grace::Type::boolTy() {
+  return new BoolType();
 }
 
-grace::Type &grace::Type::intTy() {
-  if (!IntTy)
-    IntTy = new IntType();
-  return *IntTy;
+ grace::Type *grace::Type::intTy() {
+  return new IntType();
 }

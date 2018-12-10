@@ -31,6 +31,8 @@
 %define api.token.prefix {TOK_}
 %token
   END 0 "end of file"
+  EQ "=="
+  DIFF "!="
   ASSIGN "="
   MINUS "-"
   PLUS "+"
@@ -48,14 +50,12 @@
   RBRACE "}"
   COLON ":"
   SEMICOLON ";"
-  EQ "=="
   LT "<"
   LTEQ "<="
   GT ">"
   GTEQ ">="
   COMMA ","
   QMARK "\""
-  DIFF "!="
 
   VAR "var"
   DEF "def"
@@ -197,6 +197,7 @@ block: LBRACE stmts RBRACE { $$ = $2; }
 
 expr: IDENTIFIER { $$ = new VariableExprNode($1); }
     | literal { $$ = $1; }
+    | NOT expr { $$ = new ExprNotNode($2); }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
     | expr MINUS expr { $$ = new ExprOperationNode($1, BinOp::MINUS, $3); }
@@ -234,10 +235,10 @@ return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
             | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
 
 assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignNode($1, $3); }
-            | IDENTIFIER PLUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }
-            | IDENTIFIER MINUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::MINUS, $4); }
-            | IDENTIFIER STAR ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::TIMES, $4); }
-            | IDENTIFIER SLASH ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::DIV, $4); }
+            | IDENTIFIER PLUS ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }
+            | IDENTIFIER MINUS ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::MINUS, $4); }
+            | IDENTIFIER STAR ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::TIMES, $4); }
+            | IDENTIFIER SLASH ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::DIV, $4); }
             ;
 
 assign_stmt: assign_expr SEMICOLON { $$ = $1; };

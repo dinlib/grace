@@ -30,7 +30,7 @@ Value *BlockNode::codegen(Context &C) {
 }
 
 Value *LiteralIntNode::codegen(Context &C) {
-  return ConstantInt::get(C.getContext(), APInt(INT_SIZE, value));
+  return ConstantInt::get(C.getContext(), APInt(INT_SIZE, IVal));
 }
 
 Value *LiteralBoolNode::codegen(Context &C) {
@@ -39,36 +39,37 @@ Value *LiteralBoolNode::codegen(Context &C) {
 }
 
 Value *IfThenElseNode::codegen(Context &C) {
-  //  IRBuilder<> &Builder = C.getBuilder();
-  //  LLVMContext &TheContext = C.getContext();
-  //
-  //  Value *CondV = condition->codegen(C);
-  //  if (!CondV) // TODO: log error
-  //    return nullptr;
-  //
-  //  CondV = Builder.CreateICmpNE(CondV, ConstantInt::get(TheContext,
-  //  APInt(INT_SIZE, 0)), "ifcond");
-  //
-  //  Function *TheFunction = Builder.GetInsertBlock()->getParent();
-  //
-  //  BasicBlock *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-  //  BasicBlock *ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
-  //  BasicBlock *MergeBB = BasicBlock::Create(TheContext, "ifcont");
-  //
-  //  Builder.CreateCondBr(CondV, ThenBB, ElseBB);
-  //
-  //  Builder.SetInsertPoint(ThenBB);
-  //
-  //  Value *ThenV = thenBlock->codegen(C);
-  //  if (!ThenV) // TODO: log error
-  //    return nullptr;
-  //
-  //  Builder.CreateBr(MergeBB);
-  //
-  //  ThenBB = Builder.GetInsertBlock();
-  //
-  //  TheFunction->getBasicBlockList().push_back(ElseBB);
-  //  Builder.SetInsertPoint(MergeBB);
+
+  auto &Builder = C.getBuilder();
+  auto &TheContext = C.getContext();
+
+  auto TheFunction = Builder.GetInsertBlock()->getParent();
+
+  auto ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+  auto MergeBB = BasicBlock::Create(TheContext, "merge", TheFunction);
+  auto LastBB = Else ? BasicBlock::Create(TheContext, "else", TheFunction) : MergeBB;
+
+
+  auto CondV = Condition->codegen(C);
+  Builder.CreateCondBr(CondV, ThenBB, LastBB);
+
+  Builder.SetInsertPoint(ThenBB);
+  // TODO: enter scope
+  Then->codegen(C);
+  // TODO: leave scope
+
+    Builder.CreateBr(MergeBB);
+
+  if (Else) {
+      Builder.SetInsertPoint(LastBB);
+      // TODO: enter scope
+      Else->codegen(C);
+      // TODO: leave scope
+
+      Builder.CreateBr(MergeBB);
+  }
+
+  Builder.SetInsertPoint(MergeBB);
 
   return nullptr;
 }
@@ -229,7 +230,7 @@ Value *ForNode::codegen(Context &C) {
 
   auto CondTy = Type::from(CondV->getType());
   if (!CondTy) {
-      Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '" << Type::boolTy().str() << "'";
+      Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '" << Type::boolTy()->str() << "'";
       return nullptr;
   }
 
@@ -331,8 +332,13 @@ Value *VarDeclNodeListStmt::codegen(Context &C) {
 }
 
 Value *ExprNegativeNode::codegen(Context &C) {
-  std::cout << "ExprNegativeNode unimplemented" << std::endl;
-  return nullptr;
+  Value *RHSV = RHS->codegen(C);
+  return C.getBuilder().CreateNeg(RHSV, "negtmp");
+}
+
+Value *ExprNotNode::codegen(Context &C) {
+  Value *RHSV = RHS->codegen(C);
+  return C.getBuilder().CreateNot(RHSV, "nottmp");
 }
 
 Value *ExprOperationNode::codegen(Context &C) {
@@ -349,7 +355,7 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::DIV:
     return C.getBuilder().CreateUDiv(LHSV, RHSV);
   case BinOp::MOD:
-    break;
+    return C.getBuilder().CreateURem(LHSV, RHSV, "modtmp");
   case BinOp::LT:
     return C.getBuilder().CreateICmpSLT(LHSV, RHSV);
   case BinOp::LTEQ:
@@ -363,9 +369,9 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::DIFF:
     return C.getBuilder().CreateICmpNE(LHSV, RHSV);
   case BinOp::AND:
-    break;
+    return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
   case BinOp::OR:
-    break;
+    return C.getBuilder().CreateOr(LHSV, RHSV, "ortmp");
   }
 
   return nullptr;

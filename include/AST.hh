@@ -140,12 +140,12 @@ public:
 
 class LiteralIntNode : public LiteralNode {
 public:
-  int value;
+  int IVal;
 
-  explicit LiteralIntNode(int value) : value(value) {}
+  explicit LiteralIntNode(int value) : IVal(value) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
-    os << NestedLevel(level) << "(literal value: " << value << ")";
+    os << NestedLevel(level) << "(literal value: " << IVal << ")";
   }
 
   llvm::Value *codegen(Context &C) override;
@@ -300,18 +300,34 @@ public:
 };
 
 class ExprNegativeNode : public ExprNode {
-  ExprNode *Expr;
+  ExprNode *RHS;
 
 public:
-  explicit ExprNegativeNode(ExprNode *Expr) : Expr(Expr) {}
+  explicit ExprNegativeNode(ExprNode *RHS) : RHS(RHS) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(-" << std::endl;
-    Expr->dumpAST(os, level + 1);
+    RHS->dumpAST(os, level + 1);
     os << ")" << std::endl;
   }
 
   llvm::Value *codegen(Context &C) override;
+};
+
+class ExprNotNode : public ExprNode {
+  ExprNode *RHS;
+
+public:
+  ExprNotNode(ExprNode *RHS) : RHS(RHS) {}
+
+  void dumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(NOT " << std::endl;
+    RHS->dumpAST(os, level + 1);
+    os << ")" << std::endl;
+  }
+
+  llvm::Value *codegen(Context &C) override;
+
 };
 
 class ExprOperationNode : public ExprNode {
