@@ -34,7 +34,7 @@ Value *BlockNode::codegen(Context &C) {
 }
 
 Value *LiteralIntNode::codegen(Context &C) {
-  return ConstantInt::get(C.getContext(), APInt(INT_SIZE, value));
+  return ConstantInt::get(C.getContext(), APInt(INT_SIZE, IVal));
 }
 
 Value *LiteralBoolNode::codegen(Context &C) {
@@ -46,47 +46,35 @@ Value *IfThenElseNode::codegen(Context &C) {
 
   auto &Builder = C.getBuilder();
   auto &TheContext = C.getContext();
-  
+
   auto TheFunction = Builder.GetInsertBlock()->getParent();
 
   auto ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
-  auto ElseBB = BasicBlock::Create(TheContext, "else", TheFunction);
-  auto MergeBB = BasicBlock::Create(TheContext, "ifcont", TheFunction);
-  
-  auto CondV = Condition->codegen(C);
-  if(!CondV) {
-    Log::error(0, 0) << "condition error\n";
-    return nullptr;
-  }
-  assert(CondV);
+  auto MergeBB = BasicBlock::Create(TheContext, "merge", TheFunction);
+  auto LastBB = Else ? BasicBlock::Create(TheContext, "else", TheFunction) : MergeBB;
 
-  Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+
+  auto CondV = Condition->codegen(C);
+  Builder.CreateCondBr(CondV, ThenBB, LastBB);
 
   Builder.SetInsertPoint(ThenBB);
+  // TODO: enter scope
+  Then->codegen(C);
+  // TODO: leave scope
 
-  auto ThenV = Then->codegen(C);
-  if(!ThenV) {
-    Log::error(0, 0) << "then error\n";
-    return nullptr;
+    Builder.CreateBr(MergeBB);
+
+  if (Else) {
+      Builder.SetInsertPoint(LastBB);
+      // TODO: enter scope
+      Else->codegen(C);
+      // TODO: leave scope
+
+      Builder.CreateBr(MergeBB);
   }
 
-  Builder.CreateBr(MergeBB);
-  ThenBB = Builder.GetInsertBlock();
-
-  TheFunction->getBasicBlockList().push_back(ElseBB);
-  Builder.SetInsertPoint(ElseBB);
-
-  auto ElseV = Else->codegen(C);
-  if(!ElseV) {
-    Log::warning(0, 0) << "else error\n";
-    return nullptr;
-  }
-
-  Builder.CreateBr(MergeBB);
-  ElseBB = Builder.GetInsertBlock();
-
-  TheFunction->getBasicBlockList().push_back(MergeBB);
   Builder.SetInsertPoint(MergeBB);
+
   return nullptr;
 }
 
@@ -308,7 +296,7 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::EQ:
     return C.getBuilder().CreateICmpEQ(LHSV, RHSV, "eqtmp");
   case BinOp::DIFF:
-    return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");  
+    return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");
   case BinOp::AND:
     return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
   case BinOp::OR:
@@ -415,5 +403,5 @@ Value *CompoundAssignNode::codegen(Context &C) {
     Result = C.getBuilder().CreateUDiv(Store, AllocaValue, "divtmp");
     C.getBuilder().CreateStore(Result, Alloca);
     break;
-  } 
+  }
 }

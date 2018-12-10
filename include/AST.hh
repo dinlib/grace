@@ -140,12 +140,12 @@ public:
 
 class LiteralIntNode : public LiteralNode {
 public:
-  int value;
+  int IVal;
 
-  LiteralIntNode(int value) : value(value) {}
+  LiteralIntNode(int value) : IVal(value) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
-    os << NestedLevel(level) << "(literal value: " << value << ")";
+    os << NestedLevel(level) << "(literal value: " << IVal << ")";
   }
 
   Value *codegen(Context &C) override;
