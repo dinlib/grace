@@ -273,8 +273,8 @@ Value *VarDeclNodeListStmt::codegen(Context &C) {
 }
 
 Value *ExprNegativeNode::codegen(Context &C) {
-  std::cout << "ExprNegativeNode unimplemented" << std::endl;
-  return nullptr;
+  Value *RHSV = RHS->codegen(C);
+  return C.getBuilder().CreateNeg(RHSV, "nottmp");
 }
 
 Value *ExprOperationNode::codegen(Context &C) {

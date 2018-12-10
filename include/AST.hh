@@ -302,14 +302,14 @@ public:
 };
 
 class ExprNegativeNode : public ExprNode {
-  ExprNode *Expr;
+  ExprNode *RHS;
 
 public:
-  ExprNegativeNode(ExprNode *Expr) : Expr(Expr) {}
+  ExprNegativeNode(ExprNode *RHS) : RHS(RHS) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(-" << std::endl;
-    Expr->dumpAST(os, level + 1);
+    RHS->dumpAST(os, level + 1);
     os << ")" << std::endl;
   }
 

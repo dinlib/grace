@@ -15,5 +15,9 @@ def main(): int {
 
     x = (x && y) || (a > 5);
 
+    a = -5;
+    b = -a;
+
+
     return 0;
 }
