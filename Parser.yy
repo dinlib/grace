@@ -28,6 +28,8 @@
 %define api.token.prefix {TOK_}
 %token
   END 0 "end of file"
+  EQ "=="
+  DIFF "!="
   ASSIGN "="
   MINUS "-"
   PLUS "+"
@@ -45,14 +47,12 @@
   RBRACE "}"
   COLON ":"
   SEMICOLON ";"
-  EQ "=="
   LT "<"
   LTEQ "<="
   GT ">"
   GTEQ ">="
   COMMA ","
   QMARK "\""
-  DIFF "!="
 
   VAR "var"
   DEF "def"
@@ -196,6 +196,17 @@ param: IDENTIFIER COLON data_type { $$ = new Param($1, $3, false); }
 block: LBRACE stmts RBRACE { $$ = $2; }
      | LBRACE RBRACE { $$ = new BlockNode(); };
 
+expr_list: expr { $$ = new ExprList(); $$->push_back($1); }
+    | expr_list COMMA expr { $1->push_back($3); $$ = $1; }
+    ;
+
+while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
+
+for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNode($3, $4, $6, $8); };
+
+return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
+            | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
+
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | literal { $$ = $1; }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
@@ -216,17 +227,6 @@ expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, new ExprList()); }
     | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode($1, $3); }
     ;
-
-expr_list: expr { $$ = new ExprList(); $$->push_back($1); }
-    | expr_list COMMA expr { $1->push_back($3); $$ = $1; }
-    ;
-
-while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
-
-for_stmt: FOR LPAREN var_decl expr SEMICOLON expr RPAREN block { $$ = new ForNode($3, $4, $6, $8); };
-
-return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
-            | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
 
 assign_stmt: IDENTIFIER ASSIGN expr SEMICOLON { $$ = new AssignSimpleNode($1, $3); }
             | IDENTIFIER PLUS ASSIGN expr SEMICOLON { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }

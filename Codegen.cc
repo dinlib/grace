@@ -301,11 +301,9 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::GTEQ:
     return C.getBuilder().CreateICmpSGE(LHSV, RHSV, "sgetmp");
   case BinOp::EQ:
-    //return C.getBuilder().CreateICmpEQ(LHSV, RHSV, "eqtmp");
-    return nullptr;
+    return C.getBuilder().CreateICmpEQ(LHSV, RHSV, "eqtmp");
   case BinOp::DIFF:
-    //return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");
-    return nullptr;
+    return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");  
   case BinOp::AND:
     return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
   case BinOp::OR:

@@ -71,6 +71,8 @@ loc.step();
 "{" return yy::parser::make_LBRACE(loc);
 "}" return yy::parser::make_RBRACE(loc);
 "=" return yy::parser::make_ASSIGN(loc);
+"!" return yy::parser::make_NOT(loc);
+"!=" return yy::parser::make_DIFF(loc);
 "==" return yy::parser::make_EQ(loc);
 "<" return yy::parser::make_LT(loc);
 "<=" return yy::parser::make_LTEQ(loc);
