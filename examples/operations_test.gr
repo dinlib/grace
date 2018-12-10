@@ -1,6 +1,6 @@
 def main(): int {
     var a = 5, b = 10: int;
-    var x: bool;
+    var x = true, y = true: bool;
 
     a = a + b;
     a = a * b;
@@ -12,6 +12,8 @@ def main(): int {
     x = a > b;
     x = a <= b;
     x = a >= b;
+
+    x = (x && y) || (a > 5);
 
     return 0;
 }

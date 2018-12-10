@@ -2,7 +2,9 @@ def main(): int {
     var x = 4, y = 5: int;
     
     if(x < y) {
-        x = 10;
+        if(x + y < 10) {
+            x = 10;
+        }
     } else {
         y = 10;
     }

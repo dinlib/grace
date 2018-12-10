@@ -292,27 +292,24 @@ Value *ExprOperationNode::codegen(Context &C) {
     return C.getBuilder().CreateUDiv(LHSV, RHSV, "divtmp");
   case BinOp::MOD:
     return C.getBuilder().CreateURem(LHSV, RHSV, "modtmp");
-    break;
   case BinOp::LT:
     return C.getBuilder().CreateICmpSLT(LHSV, RHSV, "slttemp");
-    break;
   case BinOp::LTEQ:
     return C.getBuilder().CreateICmpSLE(LHSV, RHSV, "sletmp");
-    break;
   case BinOp::GT:
     return C.getBuilder().CreateICmpSGT(LHSV, RHSV, "sgttmp");
-    break;
   case BinOp::GTEQ:
     return C.getBuilder().CreateICmpSGE(LHSV, RHSV, "sgetmp");
-    break;
   case BinOp::EQ:
-    break;
+    //return C.getBuilder().CreateICmpEQ(LHSV, RHSV, "eqtmp");
+    return nullptr;
   case BinOp::DIFF:
-    break;
+    //return C.getBuilder().CreateICmpNE(LHSV, RHSV, "netmp");
+    return nullptr;
   case BinOp::AND:
-    break;
+    return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
   case BinOp::OR:
-    break;
+    return C.getBuilder().CreateOr(LHSV, RHSV, "ortmp");
   }
 
   return nullptr;
