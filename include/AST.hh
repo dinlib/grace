@@ -316,6 +316,22 @@ public:
   Value *codegen(Context &C) override;
 };
 
+class ExprNotNode : public ExprNode {
+  ExprNode *RHS;
+
+public:
+  ExprNotNode(ExprNode *RHS) : RHS(RHS) {}
+  
+  void dumpAST(std::ostream &os, unsigned level) const override {
+    os << NestedLevel(level) << "(NOT " << std::endl;
+    RHS->dumpAST(os, level + 1);
+    os << ")" << std::endl;
+  }
+
+  Value *codegen(Context &C) override;
+  
+};
+
 class ExprOperationNode : public ExprNode {
   ExprNode *LHS, *RHS;
   BinOp Op;

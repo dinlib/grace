@@ -209,6 +209,7 @@ return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
 
 expr: IDENTIFIER { $$ = new ExprIdentifierNode($1); }
     | literal { $$ = $1; }
+    | NOT expr { $$ = new ExprNotNode($2); }
     | MINUS expr { $$ = new ExprNegativeNode($2); }
     | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
     | expr MINUS expr { $$ = new ExprOperationNode($1, BinOp::MINUS, $3); }

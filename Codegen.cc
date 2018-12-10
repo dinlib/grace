@@ -274,7 +274,12 @@ Value *VarDeclNodeListStmt::codegen(Context &C) {
 
 Value *ExprNegativeNode::codegen(Context &C) {
   Value *RHSV = RHS->codegen(C);
-  return C.getBuilder().CreateNeg(RHSV, "nottmp");
+  return C.getBuilder().CreateNeg(RHSV, "negtmp");
+}
+
+Value *ExprNotNode::codegen(Context &C) {
+  Value *RHSV = RHS->codegen(C);
+  return C.getBuilder().CreateNot(RHSV, "nottmp");
 }
 
 Value *ExprOperationNode::codegen(Context &C) {
