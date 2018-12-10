@@ -74,6 +74,46 @@ Value *IfThenElseNode::codegen(Context &C) {
   //  TheFunction->getBasicBlockList().push_back(ElseBB);
   //  Builder.SetInsertPoint(MergeBB);
 
+  auto &Builder = C.getBuilder();
+  auto &TheContext = C.getContext();
+
+  auto TheFunction = Builder.GetInsertBlock()->getParent();
+
+  auto *ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
+  auto *ElseBB = BasicBlock::Create(TheContext, "else");
+  auto *MergeBB = BasicBlock::Create(TheContext, "ifcont");
+
+  auto CondV = Condition->codegen(C);
+  if(!CondV)
+    //TODO erro message;
+    return nullptr;
+  assert(CondV);
+  
+  //CondV = Builder.CreateICmpEQ(CondV, ConstantInt::get(TheContext, APInt(INT_SIZE, 0)), "ifcond");
+  Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+  Builder.SetInsertPoint(ThenBB);
+
+  auto *ThenV = Then->codegen(C);
+  if(!ThenV)
+    //TODO erro message;
+    return nullptr;
+  
+  Builder.CreateBr(MergeBB);
+  ThenBB = Builder.GetInsertBlock();
+  TheFunction->getBasicBlockList().push_back(ElseBB);
+  Builder.SetInsertPoint(ElseBB);
+
+  auto *ElseV = Else->codegen(C);
+  if(!ElseV)
+    //TODO erro message;
+    return nullptr;
+  
+  Builder.CreateBr(MergeBB);
+  ElseBB = Builder.GetInsertBlock();
+
+  TheFunction->getBasicBlockList().push_back(MergeBB);
+  Builder.SetInsertPoint(MergeBB);
+
   return nullptr;
 }
 
