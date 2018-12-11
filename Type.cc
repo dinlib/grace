@@ -60,3 +60,5 @@ bool grace::Type::operator!=(const grace::Type &Other) {
 grace::Type *grace::Type::boolTy() { return new BoolType(); }
 
 grace::Type *grace::Type::intTy() { return new IntType(); }
+
+grace::Type *grace::Type::strTy() { return new StringType(); }

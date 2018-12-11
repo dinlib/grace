@@ -424,30 +424,26 @@ Value *ProcDeclNode::codegen(Context &C) {
 }
 
 Value *WriteNode::codegen(Context &C) {
-  //  std::vector<Value *> Values;
-  //  Values.reserve(Exprs->size());
-  //
-  //  Function *Printf = C.getModule().getFunction("printf");
-  //  if (!Printf) {
-  //    FunctionType *FuncTy =
-  //        FunctionType::get(IntegerType::get(C.getContext(), 32), true);
-  //
-  //    Printf = Function::Create(FuncTy, GlobalValue::ExternalLinkage,
-  //    "printf",
-  //                              &C.getModule());
-  //    Printf->setCallingConv(CallingConv::C);
-  //
-  //    AttributeList PrintfPAL;
-  //    Printf->setAttributes(PrintfPAL);
-  //  }
-  //
-  //  Value *StrFormat = C.getBuilder().CreateGlobalStringPtr(Format);
-  //  Values.push_back(StrFormat);
-  //
-  //  for (auto Expr : *Exprs)
-  //    Values.push_back(Expr->codegen(C));
-  //
-  //  C.getBuilder().CreateCall(Printf, Values, "callprintf");
+
+  auto Sym = dynamic_cast<FuncSymbol *>(C.ST.get("printf"));
+  assert(Sym && "forgot to insert printf function");
+
+  auto StrFormat = C.getBuilder().CreateGlobalStringPtr("%s");
+  auto IntFormat = C.getBuilder().CreateGlobalStringPtr("%d");
+  auto NewLineFormat = C.getBuilder().CreateGlobalStringPtr("\n");
+
+  for (auto Expr : *Exprs) {
+    auto Value = Expr->codegen(C);
+    auto Ty = Type::from(Value->getType());
+
+    if (Ty->isIntTy() || Ty->isBoolTy()) {
+      C.getBuilder().CreateCall(Sym->Function, {IntFormat, Value});
+    } else if (Ty->isStringTy()) {
+      C.getBuilder().CreateCall(Sym->Function, {StrFormat, Value});
+    }
+  }
+
+  C.getBuilder().CreateCall(Sym->Function, {NewLineFormat});
 
   return nullptr;
 }

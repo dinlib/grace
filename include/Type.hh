@@ -24,6 +24,7 @@ public:
   static Type *from(llvm::Type *Ty);
   static Type *boolTy();
   static Type *intTy();
+  static Type *strTy();
 
   bool operator==(const Type &Other);
   bool operator!=(const Type &Other);

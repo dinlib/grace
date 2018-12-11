@@ -20,30 +20,25 @@ public:
   SymbolTable ST;
 
   Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
-    ExpectReturn = false;
     ReturnFound = false;
 
     // initialize global scope
     ST.enterScope();
 
     initializePassManager();
+    insertPrintfAndScanf();
   }
 
   llvm::Module &getModule() { return TheModule; }
-
   llvm::LLVMContext &getContext() { return TheModule.getContext(); }
-
   llvm::IRBuilder<> &getBuilder() { return TheBuilder; }
-
-  bool typeCheck(llvm::Type *A, llvm::Type *B);
-
   void dumpIR() const { TheModule.print(errs(), nullptr); }
 
-  bool ExpectReturn;
   bool ReturnFound;
 
 private:
   void initializePassManager() {}
+  void insertPrintfAndScanf();
 };
 
 }; // namespace grace
