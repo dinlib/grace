@@ -31,7 +31,7 @@ add_executable(grace
                 main.cc
                 Driver.cc 
                 Dump.cc
-                Codegen.cc Context.cc  Error.cc Type.cc SymbolTable.cc BinOp.cc Log.cc include/location.hh)
+                Codegen.cc Context.cc Error.cc Type.cc SymbolTable.cc BinOp.cc Log.cc include/Log.hh include/location.hh)
 
 llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES native)
 target_link_libraries(grace ${REQ_LLVM_LIBRARIES}

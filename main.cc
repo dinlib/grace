@@ -6,6 +6,7 @@
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
 #include <iostream>
 
 int main(int argc, char **argv) {
@@ -29,12 +30,8 @@ int main(int argc, char **argv) {
   Context C;
   drv.program->codegen(C);
 
-  if (hasError)
-    return 1;
-
-  if (drv.dump_ir) {
+  if (drv.dump_ir)
     C.dumpIR();
-  }
 
   verifyModule(C.getModule());
 
@@ -65,27 +62,27 @@ int main(int argc, char **argv) {
 
   C.getModule().setDataLayout(TheTargetMachine->createDataLayout());
 
-  auto Filename = "output.o";
   std::error_code EC;
-  raw_fd_ostream dest(Filename, EC, sys::fs::F_None);
+  raw_fd_ostream dest("output.o", EC, sys::fs::F_None);
 
   if (EC) {
     errs() << "Could not open file: " << EC.message();
     return 1;
   }
 
-  legacy::PassManager Pass;
+  legacy::PassManager pass;
   auto FileType = TargetMachine::CGFT_ObjectFile;
 
-  if (TheTargetMachine->addPassesToEmitFile(Pass, dest, nullptr, FileType)) {
+  if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
     errs() << "TheTargetMachine can't emit a file of this type";
     return 1;
   }
 
-  Pass.run(C.getModule());
+  pass.run(C.getModule());
   dest.flush();
 
-  outs() << "Wrote " << Filename << "\n";
+  system("clang output.o");
+  system("rm -f output.o");
 
   return 0;
 }
