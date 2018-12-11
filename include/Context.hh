@@ -21,6 +21,7 @@ public:
 
   Context() : TheBuilder(TheContext), TheModule("grace lang", TheContext) {
     ReturnFound = false;
+    ExpectReturn = false;
 
     // initialize global scope
     ST.enterScope();
@@ -34,6 +35,7 @@ public:
   llvm::IRBuilder<> &getBuilder() { return TheBuilder; }
   void dumpIR() const { TheModule.print(errs(), nullptr); }
 
+  bool ExpectReturn;
   bool ReturnFound;
 
 private:

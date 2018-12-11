@@ -117,8 +117,8 @@
 program: stmts { drv.program = $1; }
        ;
 
-stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
+stmts: stmt { $$ = new BlockNode(); $$->Stmts.push_back($1); }
+      | stmts stmt { $1->Stmts.push_back($2); $$ = $1; }
       ;
 
 stmt: var_decl { $$ = $1; }

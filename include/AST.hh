@@ -1,3 +1,5 @@
+#include <utility>
+
 
 #pragma once
 
@@ -13,6 +15,14 @@ namespace grace {
 class Context;
 
 class Type;
+
+template <typename T>
+static void safe_delete(T **ptr) {
+//    if (*ptr) {
+//        delete *ptr;
+//        *ptr = nullptr;
+//    }
+}
 
 static std::string NestedLevel(unsigned level) {
   std::string str(level * 4, ' ');
@@ -89,7 +99,12 @@ class LiteralNode : public ExprNode {};
 
 class BlockNode : public Node {
 public:
-  StmtList Stmts;
+    ~BlockNode() override {
+        for (auto Stmt : Stmts)
+            safe_delete(&Stmt);
+    }
+
+    StmtList Stmts;
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(Body" << std::endl;
@@ -111,7 +126,11 @@ public:
   AssignNode(std::string Id, ExprNode *Assign)
       : Id(std::move(Id)), Assign(Assign) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~AssignNode() override {
+        safe_delete(&Assign);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(Assign id: " << Id
        << "; value: " << std::endl;
     Assign->dumpAST(os, level + 1);
@@ -155,7 +174,7 @@ class LiteralStringNode : public LiteralNode {
 public:
   std::string Str;
 
-  explicit LiteralStringNode(const std::string &Str) : Str(Str) {}
+  explicit LiteralStringNode(std::string Str) : Str(std::move(Str)) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << Str << ")";
@@ -185,6 +204,10 @@ public:
 
   SpecVar(std::string Id, AssignNode *Assign)
       : Id(std::move(Id)), Assign(Assign) {}
+
+      ~SpecVar() {
+          safe_delete(&Assign);
+  }
 };
 
 class VarDeclNode : public StmtNode {
@@ -196,6 +219,11 @@ protected:
 public:
   VarDeclNode(std::string Id, AssignNode *Assign, Type *Ty)
       : Id(std::move(Id)), Assign(Assign), Ty(Ty) {}
+
+      ~VarDeclNode() override {
+          safe_delete(&Assign);
+          safe_delete(&Ty);
+  }
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(varDecl id: " << Id << "; type: " << Ty;
@@ -216,7 +244,12 @@ class VarDeclNodeListStmt : public StmtNode {
 public:
   VarDeclNodeList varDeclList;
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~VarDeclNodeListStmt() override {
+        for (auto Decl : varDeclList)
+            safe_delete(&Decl);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     for (const auto &varDecl : varDeclList)
       varDecl->dumpAST(os, level);
   }
@@ -235,7 +268,17 @@ public:
                BlockNode *Body)
       : Name(std::move(Name)), ReturnTy(ReturnTy), Args(Args), Body(Body) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~FuncDeclNode() override  {
+        safe_delete(&ReturnTy);
+        safe_delete(&Body);
+
+        for (auto Param : *Args)
+            safe_delete(&Param);
+
+        safe_delete(&Args);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(function Name: " << Name
        << "; ReturnType: " << ReturnTy << std::endl;
     Body->dumpAST(os, level + 1);
@@ -254,7 +297,16 @@ public:
   ProcDeclNode(std::string Name, ParamList *Args, BlockNode *Body)
       : Name(std::move(Name)), Args(Args), Body(Body) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ProcDeclNode() override {
+        safe_delete(&Body);
+
+        for (auto Param : *Args)
+            safe_delete(&Param);
+
+        safe_delete(&Args);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(function Name: " << Name << "; ReturnType: "
        << "void" << std::endl;
     Body->dumpAST(os, level + 1);
@@ -272,7 +324,13 @@ public:
   IfThenElseNode(ExprNode *Condition, BlockNode *Then, BlockNode *Else)
       : Condition(Condition), Then(Then), Else(Else) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~IfThenElseNode() override {
+        safe_delete(&Condition);
+        safe_delete(&Then);
+        safe_delete(&Else);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(if" << std::endl;
     Condition->dumpAST(os, level + 1);
     os << std::endl;
@@ -305,7 +363,11 @@ class ExprNegativeNode : public ExprNode {
 public:
   explicit ExprNegativeNode(ExprNode *RHS) : RHS(RHS) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ExprNegativeNode() override {
+    safe_delete(&RHS);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(-" << std::endl;
     RHS->dumpAST(os, level + 1);
     os << ")" << std::endl;
@@ -320,7 +382,11 @@ class ExprNotNode : public ExprNode {
 public:
   ExprNotNode(ExprNode *RHS) : RHS(RHS) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ExprNotNode() override {
+    safe_delete(&RHS);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(NOT " << std::endl;
     RHS->dumpAST(os, level + 1);
     os << ")" << std::endl;
@@ -337,7 +403,12 @@ public:
   ExprOperationNode(ExprNode *LHS, BinOp Op, ExprNode *RHS)
       : LHS(LHS), Op(Op), RHS(RHS) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ExprOperationNode() override {
+        safe_delete(&LHS);
+        safe_delete(&RHS);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(expr" << std::endl;
     LHS->dumpAST(os, level + 1);
     os << to_string(Op) << std::endl;
@@ -356,7 +427,13 @@ public:
   CallExprNode(std::string Callee, ExprList *Args)
       : Callee(std::move(Callee)), Args(Args) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~CallExprNode() override {
+        for (auto Arg : *Args)
+            safe_delete(&Arg);
+        safe_delete(&Args);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(call " << Callee << std::endl
        << NestedLevel(level + 1) << "args: " << std::endl;
 
@@ -379,7 +456,12 @@ public:
   WhileNode(ExprNode *Condition, BlockNode *Block)
       : Condition(Condition), Block(Block) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~WhileNode() override {
+        safe_delete(&Condition);
+        safe_delete(&Block);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(while" << std::endl;
     Condition->dumpAST(os, level + 1);
     os << std::endl;
@@ -400,7 +482,14 @@ public:
   ForNode(AssignNode *Start, ExprNode *End, AssignNode *Step, BlockNode *Body)
       : Start(Start), End(End), Step(Step), Body(Body) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ForNode() override {
+        safe_delete(&Start);
+        safe_delete(&End);
+        safe_delete(&Step);
+        safe_delete(&Body);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(for" << std::endl;
     Start->dumpAST(os, level + 1);
     os << std::endl;
@@ -421,7 +510,11 @@ class ReturnNode : public StmtNode {
 public:
   explicit ReturnNode(ExprNode *expr) : expr(expr) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {
+    ~ReturnNode() override {
+        safe_delete(&expr);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(return ";
 
     if (expr != nullptr) {
@@ -464,7 +557,13 @@ class WriteNode : public StmtNode {
 public:
   explicit WriteNode(ExprList *Exprs) : Exprs(Exprs) {}
 
-  void dumpAST(std::ostream &os, unsigned level) const override {}
+    ~WriteNode() override {
+        for (auto Expr : *Exprs)
+            safe_delete(&Expr);
+        safe_delete(&Exprs);
+    }
+
+    void dumpAST(std::ostream &os, unsigned level) const override {}
 
   llvm::Value *codegen(Context &C) override;
 };

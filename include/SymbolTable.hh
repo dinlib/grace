@@ -66,10 +66,16 @@ public:
   }
 
   void enterScope() {
-    Scopes.push_back(std::unordered_map<std::string, Symbol *>());
+    Scopes.emplace_back();
   }
 
-  void leaveScope() { Scopes.pop_back(); }
+  void leaveScope() {
+//      auto Back = *Scopes.end();
+//      for (auto &Entry : Back)
+//          delete Entry.second;
+
+      Scopes.pop_back();
+  }
 };
 }; // namespace grace
 
