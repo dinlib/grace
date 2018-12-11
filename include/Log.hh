@@ -11,7 +11,10 @@ using namespace llvm;
 class Log {
 public:
 
+    static bool ErrorHappened;
+
    static raw_ostream &error(const yy::position &pos) {
+       ErrorHappened = true;
        errs() << pos.line << "," << pos.column << ": \033[1;31merror\033[0m: ";
        return errs();
    }

@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
   Context C;
   drv.program->codegen(C);
 
+  if (Log::ErrorHappened) return 1;
+
   if (drv.dump_ir)
     C.dumpIR();
 
