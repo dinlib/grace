@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%require "3.0.4"
+%require "3.2"
 %defines
 
 %define api.token.constructor
@@ -20,6 +20,9 @@
 %param { Driver &drv }
 
 %locations
+%define api.location.file "location.hh"
+%define api.location.include {<location.hh>}
+
 
 %define parse.trace
 %define parse.error verbose
@@ -103,7 +106,6 @@
 %type <ExprNode *> expr
 %type <CallExprNode *> call_expr
 %type <LiteralNode *> literal
-%type <LiteralNodeList *> literal_list
 %type <ParamList*> param_list
 %type <Param*> param
 %type <ExprList*> expr_list
@@ -117,8 +119,8 @@
 program: stmts { drv.program = $1; }
        ;
 
-stmts: stmt { $$ = new BlockNode(); $$->stmts.push_back($1); }
-      | stmts stmt { $1->stmts.push_back($2); $$ = $1; }
+stmts: stmt { $$ = new BlockNode(@$); $$->Stmts.push_back($1); }
+      | stmts stmt { $1->Stmts.push_back($2); $$ = $1; }
       ;
 
 stmt: var_decl { $$ = $1; }
@@ -128,22 +130,22 @@ stmt: var_decl { $$ = $1; }
     | while_stmt { $$ = $1; }
     | for_stmt {$$ = $1; }
     | return_stmt { $$ = $1; }
-    | SKIP SEMICOLON { $$ = new SkipNode(); }
-    | STOP SEMICOLON { $$ = new StopNode(); }
+    | SKIP SEMICOLON { $$ = new SkipNode(@1); }
+    | STOP SEMICOLON { $$ = new StopNode(@1); }
     | assign_stmt { $$ = $1; }
-    | WRITE expr_list SEMICOLON { $$ = new WriteNode($2); }
+    | WRITE expr_list SEMICOLON { $$ = new WriteNode(@1, $2); }
 //    | call_expr SEMICOLON { $$ =  }
-  //  | READ var_expr SEMICOLON { $$ = new ReadNode($2); }
+  //  | READ var_expr SEMICOLON { $$ = new ReadNode(@1 $2); }
     ;
 
-if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode($3, $5, NULL); }
-				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode($3, $5, $7); }
+if_then_else_stmt: IF LPAREN expr RPAREN block { $$ = new IfThenElseNode(@$, $3, $5, NULL); }
+				| IF LPAREN expr RPAREN block ELSE block { $$ = new IfThenElseNode(@$, $3, $5, $7); }
         ;
 
-var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt();
+var_decl: VAR spec_var_list COLON data_type SEMICOLON { $$ = new VarDeclNodeListStmt(@$);
                                                         for (auto spec : *$2) {
                                                           $$->varDeclList.push_back(
-                                                            new VarDeclNode(spec->Id, spec->Assign, $4)
+                                                            new VarDeclNode(spec->loc, spec->Id, spec->Assign, $4)
                                                           );
                                                           delete spec;
                                                         }
@@ -159,59 +161,55 @@ spec_var: spec_var_simple { $$ = $1; }
        | spec_var_simple_init { $$ = $1; }
        ;
 
-spec_var_simple: IDENTIFIER { $$ = new SpecVar($1, NULL); }
+spec_var_simple: IDENTIFIER { $$ = new SpecVar(@$, $1, NULL); }
               ;
 
-spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar($1, new AssignNode($1, $3)); }
+spec_var_simple_init: IDENTIFIER ASSIGN expr { $$ = new SpecVar(@$, $1, new AssignNode(@2, $1, $3)); }
                     ;
 
-literal_list: literal { $$ = new LiteralNodeList(); $$->push_back($1); } 
-            | literal_list COMMA literal { $1->push_back($3); $$ = $1; }
-            ;
-
-literal: STRING_LITERAL { $$ = new LiteralStringNode($1); }
-       | NUMBER { $$ = new LiteralIntNode($1); }
-       | BOOL_LITERAL { $$ = new LiteralBoolNode($1); };
+literal: STRING_LITERAL { $$ = new LiteralStringNode(@$, $1); }
+       | NUMBER { $$ = new LiteralIntNode(@$, $1); }
+       | BOOL_LITERAL { $$ = new LiteralBoolNode(@$, $1); };
 
 data_type: TYPE_INT { $$ = new grace::IntType(); }
     | TYPE_STRING { $$ = new grace::StringType(); }
     | TYPE_BOOL { $$ = new grace::BoolType(); }
     ;
 
-func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $6, new ParamList(), $7); }
-    | DEF IDENTIFIER LPAREN param_list RPAREN COLON data_type block { $$ = new FuncDeclNode($2, $7, $4, $8); }
+func_decl: DEF IDENTIFIER LPAREN RPAREN COLON data_type block { $$ = new FuncDeclNode(@$, $2, $6, new ParamList(), $7); }
+    | DEF IDENTIFIER LPAREN param_list RPAREN COLON data_type block { $$ = new FuncDeclNode(@$, $2, $7, $4, $8); }
     ;
 
-proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new ProcDeclNode($2, new ParamList(), $5); };
-  | DEF IDENTIFIER LPAREN param_list RPAREN block { $$ = new ProcDeclNode($2, $4, $6); };
+proc_decl: DEF IDENTIFIER LPAREN RPAREN block { $$ = new ProcDeclNode(@$, $2, new ParamList(), $5); };
+  | DEF IDENTIFIER LPAREN param_list RPAREN block { $$ = new ProcDeclNode(@$, $2, $4, $6); };
 
 param_list: param { $$ = new ParamList(); $$->push_back($1); }
   | param_list COMMA param { $1->push_back($3); $$ = $1; }
   ;
 
-param: IDENTIFIER COLON data_type { $$ = new Param($1, $3); }
+param: IDENTIFIER COLON data_type { $$ = new Param(@$, $1, $3); }
   ;
 
 block: LBRACE stmts RBRACE { $$ = $2; }
-     | LBRACE RBRACE { $$ = new BlockNode(); };
+     | LBRACE RBRACE { $$ = new BlockNode(@$); };
 
-expr: IDENTIFIER { $$ = new VariableExprNode($1); }
+expr: IDENTIFIER { $$ = new VariableExprNode(@$, $1); }
     | literal { $$ = $1; }
-    | NOT expr { $$ = new ExprNotNode($2); }
-    | MINUS expr { $$ = new ExprNegativeNode($2); }
-    | expr PLUS expr { $$ = new ExprOperationNode($1, BinOp::PLUS, $3); }
-    | expr MINUS expr { $$ = new ExprOperationNode($1, BinOp::MINUS, $3); }
-    | expr STAR expr { $$ = new ExprOperationNode($1, BinOp::TIMES, $3); }
-    | expr SLASH expr { $$ = new ExprOperationNode($1, BinOp::DIV, $3); }
-    | expr MOD expr { $$ = new ExprOperationNode($1, BinOp::MOD, $3); }
-    | expr LT expr { $$ = new ExprOperationNode($1, BinOp::LT, $3); }
-    | expr LTEQ expr { $$ = new ExprOperationNode($1, BinOp::LTEQ, $3); }
-    | expr GT expr { $$ = new ExprOperationNode($1, BinOp::GT, $3); }
-    | expr GTEQ expr { $$ = new ExprOperationNode($1, BinOp::GTEQ, $3); }
-    | expr EQ expr { $$ = new ExprOperationNode($1, BinOp::EQ, $3); }
-    | expr DIFF expr { $$ = new ExprOperationNode($1, BinOp::DIFF, $3); }
-    | expr AND expr { $$ = new ExprOperationNode($1, BinOp::AND, $3); }
-    | expr OR expr { $$ = new ExprOperationNode($1, BinOp::OR, $3); }
+    | NOT expr { $$ = new ExprNotNode(@$, $2); }
+    | MINUS expr { $$ = new ExprNegativeNode(@$, $2); }
+    | expr PLUS expr { $$ = new ExprOperationNode(@$, $1, BinOp::PLUS, $3); }
+    | expr MINUS expr { $$ = new ExprOperationNode(@$, $1, BinOp::MINUS, $3); }
+    | expr STAR expr { $$ = new ExprOperationNode(@$, $1, BinOp::TIMES, $3); }
+    | expr SLASH expr { $$ = new ExprOperationNode(@$, $1, BinOp::DIV, $3); }
+    | expr MOD expr { $$ = new ExprOperationNode(@$, $1, BinOp::MOD, $3); }
+    | expr LT expr { $$ = new ExprOperationNode(@$, $1, BinOp::LT, $3); }
+    | expr LTEQ expr { $$ = new ExprOperationNode(@$, $1, BinOp::LTEQ, $3); }
+    | expr GT expr { $$ = new ExprOperationNode(@$, $1, BinOp::GT, $3); }
+    | expr GTEQ expr { $$ = new ExprOperationNode(@$, $1, BinOp::GTEQ, $3); }
+    | expr EQ expr { $$ = new ExprOperationNode(@$, $1, BinOp::EQ, $3); }
+    | expr DIFF expr { $$ = new ExprOperationNode(@$, $1, BinOp::DIFF, $3); }
+    | expr AND expr { $$ = new ExprOperationNode(@$, $1, BinOp::AND, $3); }
+    | expr OR expr { $$ = new ExprOperationNode(@$, $1, BinOp::OR, $3); }
     | LPAREN expr RPAREN { $$ = $2; }
     | call_expr { $$ = $1; }
     ;
@@ -220,25 +218,22 @@ expr_list: expr { $$ = new ExprList(); $$->push_back($1); }
     | expr_list COMMA expr { $1->push_back($3); $$ = $1; }
     ;
 
-//var_expr:
-//        ;
-
-call_expr: IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode($1, new ExprList()); }
-          | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode($1, $3); }
+call_expr: IDENTIFIER LPAREN RPAREN { $$ = new CallExprNode(@$, $1, new ExprList()); }
+          | IDENTIFIER LPAREN expr_list RPAREN { $$ = new CallExprNode(@$, $1, $3); }
           ;
 
-while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode($3, $5); };
+while_stmt: WHILE LPAREN expr RPAREN block { $$ = new WhileNode(@$, $3, $5); };
 
-for_stmt: FOR LPAREN assign_expr SEMICOLON expr SEMICOLON assign_expr RPAREN block { $$ = new ForNode($3, $5, $7, $9); };
+for_stmt: FOR LPAREN assign_expr SEMICOLON expr SEMICOLON assign_expr RPAREN block { $$ = new ForNode(@$, $3, $5, $7, $9); };
 
-return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(NULL); }
-            | RETURN expr SEMICOLON { $$ = new ReturnNode($2); };
+return_stmt: RETURN SEMICOLON { $$ = new ReturnNode(@$, nullptr); }
+            | RETURN expr SEMICOLON { $$ = new ReturnNode(@$, $2); };
 
-assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignNode($1, $3); }
-            | IDENTIFIER PLUS ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::PLUS, $4); }
-            | IDENTIFIER MINUS ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::MINUS, $4); }
-            | IDENTIFIER STAR ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::TIMES, $4); }
-            | IDENTIFIER SLASH ASSIGN expr { $$ = new CompoundAssignNode($1, BinOp::DIV, $4); }
+assign_expr: IDENTIFIER ASSIGN expr { $$ = new AssignNode(@$, $1, $3); }
+            | IDENTIFIER PLUS ASSIGN expr { $$ = new CompoundAssignNode(@$, $1, BinOp::PLUS, $4); }
+            | IDENTIFIER MINUS ASSIGN expr { $$ = new CompoundAssignNode(@$, $1, BinOp::MINUS, $4); }
+            | IDENTIFIER STAR ASSIGN expr { $$ = new CompoundAssignNode(@$, $1, BinOp::TIMES, $4); }
+            | IDENTIFIER SLASH ASSIGN expr { $$ = new CompoundAssignNode(@$, $1, BinOp::DIV, $4); }
             ;
 
 assign_stmt: assign_expr SEMICOLON { $$ = $1; };

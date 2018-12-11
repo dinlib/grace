@@ -5,7 +5,7 @@ def sum(x: int, y: int): int {
 def main(): int {
     var x = 4, y = 5: int;
 
-    b = true;
+    b = x;
     
     if (x < y) {
         if (x + y < 10) {

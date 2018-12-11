@@ -48,7 +48,7 @@ Value *IfThenElseNode::codegen(Context &C) {
   auto CondVTy = Type::from(CondV->getType());
 
   if (!CondVTy->isBoolTy()) {
-    Log::error(0, 0) << "'" << CondVTy->str() << "' is not convertible to '"
+    Log::error(Condition->loc.begin) << "'" << CondVTy->str() << "' is not convertible to '"
                      << Type::boolTy()->str() << "'\n";
     return nullptr;
   }
@@ -81,7 +81,7 @@ Value *FuncDeclNode::codegen(Context &C) {
 
   // Check if function is already defined.
   if (Sym) {
-    Log::error(0, 0) << "function " << Name << " already defined\n";
+    Log::error(loc.begin) << "function " << Name << " already defined\n";
     return nullptr;
   }
 
@@ -123,14 +123,13 @@ Value *FuncDeclNode::codegen(Context &C) {
   }
 
   // generate function body
-  C.ExpectReturn = true;
   C.ReturnFound = false;
   Body->codegen(C);
 
   C.ST.leaveScope();
 
   if (!C.ReturnFound) {
-    Log::warning(0, 0) << "expected a return statement inside function body, "
+    Log::warning(Body->loc.end) << "expected a return statement inside function body, "
                           "but none was found.\n";
     return nullptr;
   }
@@ -140,7 +139,7 @@ Value *FuncDeclNode::codegen(Context &C) {
 
 Value *VarDeclNode::codegen(Context &C) {
   if (C.ST.get(Id)) {
-    Log::error(0, 0) << "variable " << Id << " already declared.\n";
+    Log::error(loc.begin) << "variable " << Id << " already declared.\n";
     return nullptr;
   }
 
@@ -172,7 +171,7 @@ Value *SkipNode::codegen(Context &C) {
   auto Sym = dynamic_cast<BlockSymbol *>(C.ST.get("skip"));
 
   if (!Sym)
-    Log::error(0, 0) << "skip command can appear only inside loops.\n";
+    Log::error(loc.begin) << "skip command can appear only inside loops.\n";
   else
     C.getBuilder().CreateBr(Sym->BB);
 
@@ -183,7 +182,7 @@ Value *StopNode::codegen(Context &C) {
   auto Sym = dynamic_cast<BlockSymbol *>(C.ST.get("stop"));
 
   if (!Sym)
-    Log::error(0, 0) << "stop command can appear only inside loops.\n";
+    Log::error(loc.begin) << "stop command can appear only inside loops.\n";
   else
     C.getBuilder().CreateBr(Sym->BB);
 
@@ -216,7 +215,7 @@ Value *ForNode::codegen(Context &C) {
 
   auto CondTy = Type::from(CondV->getType());
   if (!CondTy->isBoolTy()) {
-    Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '"
+    Log::error(End->loc.begin) << "'" << CondTy->str() << "' is not convertible to '"
                      << Type::boolTy()->str() << "'\n";
     return nullptr;
   }
@@ -259,7 +258,7 @@ Value *WhileNode::codegen(Context &C) {
   auto CondV = Condition->codegen(C);
   auto CondTy = Type::from(CondV->getType());
   if (!CondTy->isBoolTy()) {
-    Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '"
+    Log::error(Condition->loc.begin) << "'" << CondTy->str() << "' is not convertible to '"
                      << Type::boolTy()->str() << "'\n";
     return nullptr;
   }
@@ -282,7 +281,7 @@ Value *WhileNode::codegen(Context &C) {
 Value *VariableExprNode::codegen(Context &C) {
   auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
   if (!Sym) {
-    Log::error(0, 0) << "variable '" << Id << "' not found.\n";
+    Log::error(loc.begin) << "variable '" << Id << "' not declared.\n";
     return nullptr;
   }
 
@@ -295,8 +294,11 @@ Value *LiteralStringNode::codegen(Context &C) {
 
 llvm::Value *AssignNode::codegen(Context &C) {
   auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
-  if (!Sym)
+  if (!Sym) {
+    Log::error(loc.begin) << "variable '" << Id << "' not declared.\n";
     return nullptr;
+  }
+
 
   Value *Store = Assign->codegen(C);
   if (!Store)
@@ -306,7 +308,7 @@ llvm::Value *AssignNode::codegen(Context &C) {
   auto DeclaredTy = Sym->Ty;
 
   if (*AssignTy != *DeclaredTy) {
-    Log::error(0, 0) << "cannot assign value of type '" << AssignTy->str()
+    Log::error(Assign->loc.begin) << "cannot assign value of type '" << AssignTy->str()
                      << "', expected '" << DeclaredTy->str() << "'\n";
     return nullptr;
   }
@@ -333,7 +335,7 @@ Value *ExprNotNode::codegen(Context &C) {
   auto Ty = Type::from(RHSV->getType());
 
   if (!Ty->isBoolTy()) {
-    Log::error(0, 0) << "'" << Ty->str() << "' is not convertible to '"
+    Log::error(RHS->loc.begin) << "'" << Ty->str() << "' is not convertible to '"
                      << Type::boolTy()->str() << "'\n";
     return nullptr;
   }
@@ -379,12 +381,12 @@ Value *CallExprNode::codegen(Context &C) {
   auto Sym = dynamic_cast<FuncSymbol *>(C.ST.get(Callee));
 
   if (!Sym) {
-    Log::error(0, 0) << "function '" << Callee << "' not found.\n";
+    Log::error(loc.begin) << "function '" << Callee << "' not found.\n";
     return nullptr;
   }
 
   if (Sym->Function->arg_size() != Args->size()) {
-    Log::error(0, 0) << "incorrect number of arguments passed to function "
+    Log::error(loc.begin) << "incorrect number of arguments passed to function "
                      << Callee << "\n";
     return nullptr;
   }
@@ -403,7 +405,7 @@ Value *CallExprNode::codegen(Context &C) {
     auto PassedTy = Type::from(ArgsV[i]->getType());
 
     if (*DeclaredTy != *PassedTy) {
-      Log::error(0, 0) << "wrong param type passed to function '" << Callee
+      Log::error((*Args)[i]->loc.begin) << "wrong param type passed to function '" << Callee
                        << "' at index '" << std::to_string(i) << "', expected '"
                        << DeclaredTy->str() << "', but found '"
                        << PassedTy->str() << "'\n";
@@ -452,7 +454,7 @@ Value *CompoundAssignNode::codegen(Context &C) {
   auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
 
   if (!Sym) {
-    Log::error(0, 0) << "variable " << Id << " not declared in this scope.\n";
+    Log::error(loc.begin) << "variable '" << Id << "' not declared.\n";
     return nullptr;
   }
 
@@ -463,7 +465,7 @@ Value *CompoundAssignNode::codegen(Context &C) {
   auto AssigningTy = Type::from(Store->getType());
 
   if (*AllocatedTy != *AssigningTy) {
-    Log::error(0, 0) << "cannot assign value of type '" << AssigningTy->str()
+    Log::error(Assign->loc.begin) << "cannot assign value of type '" << AssigningTy->str()
                      << "', expected '" << AllocatedTy->str() << "'\n";
     return nullptr;
   }
