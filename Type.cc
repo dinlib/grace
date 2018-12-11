@@ -57,10 +57,6 @@ bool grace::Type::operator!=(const grace::Type &Other) {
   return !(*this == Other);
 }
 
- grace::Type *grace::Type::boolTy() {
-  return new BoolType();
-}
+grace::Type *grace::Type::boolTy() { return new BoolType(); }
 
- grace::Type *grace::Type::intTy() {
-  return new IntType();
-}
+grace::Type *grace::Type::intTy() { return new IntType(); }

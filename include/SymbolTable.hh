@@ -38,12 +38,12 @@ public:
 
 class FuncSymbol : public Symbol {
 public:
-  llvm::Value *Value;
+  llvm::Function *Function;
   Type *ReturnTy;
   std::vector<Type *> Args;
 
-  FuncSymbol(llvm::Value *Value, Type *ReturnTy, std::vector<Type *> Args)
-      : Value(Value), ReturnTy(ReturnTy), Args(std::move(Args)) {}
+  FuncSymbol(llvm::Function *Function, Type *ReturnTy, std::vector<Type *> Args)
+      : Function(Function), ReturnTy(ReturnTy), Args(std::move(Args)) {}
 };
 
 class SymbolTable {

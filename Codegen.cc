@@ -5,12 +5,6 @@
 using namespace llvm;
 using namespace grace;
 
-/// LogError* - These are little helper functions for error handling.
-Node *LogError(const char *Str) {
-  fprintf(stderr, "Error: %s\n", Str);
-  return nullptr;
-}
-
 /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
 /// the function.  This is used for mutable variables etc.
 static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
@@ -23,8 +17,8 @@ static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 }
 
 Value *BlockNode::codegen(Context &C) {
-  for (auto &stmt : stmts)
-    stmt->codegen(C);
+  for (auto &Stmt : Stmts)
+    Stmt->codegen(C);
 
   return nullptr;
 }
@@ -47,26 +41,34 @@ Value *IfThenElseNode::codegen(Context &C) {
 
   auto ThenBB = BasicBlock::Create(TheContext, "then", TheFunction);
   auto MergeBB = BasicBlock::Create(TheContext, "merge", TheFunction);
-  auto LastBB = Else ? BasicBlock::Create(TheContext, "else", TheFunction) : MergeBB;
-
+  auto LastBB =
+      Else ? BasicBlock::Create(TheContext, "else", TheFunction) : MergeBB;
 
   auto CondV = Condition->codegen(C);
+  auto CondVTy = Type::from(CondV->getType());
+
+  if (!CondVTy->isBoolTy()) {
+    Log::error(0, 0) << "'" << CondVTy->str() << "' is not convertible to '"
+                     << Type::boolTy()->str() << "'\n";
+    return nullptr;
+  }
+
   Builder.CreateCondBr(CondV, ThenBB, LastBB);
 
   Builder.SetInsertPoint(ThenBB);
-  // TODO: enter scope
+  C.ST.enterScope();
   Then->codegen(C);
-  // TODO: leave scope
+  C.ST.leaveScope();
 
-    Builder.CreateBr(MergeBB);
+  Builder.CreateBr(MergeBB);
 
   if (Else) {
-      Builder.SetInsertPoint(LastBB);
-      // TODO: enter scope
-      Else->codegen(C);
-      // TODO: leave scope
+    Builder.SetInsertPoint(LastBB);
+    C.ST.enterScope();
+    Else->codegen(C);
+    C.ST.leaveScope();
 
-      Builder.CreateBr(MergeBB);
+    Builder.CreateBr(MergeBB);
   }
 
   Builder.SetInsertPoint(MergeBB);
@@ -75,15 +77,13 @@ Value *IfThenElseNode::codegen(Context &C) {
 }
 
 Value *FuncDeclNode::codegen(Context &C) {
-  Function *F = C.getModule().getFunction(Name);
+  auto Sym = dynamic_cast<FuncSymbol *>(C.ST.get(Name));
 
   // Check if function is already defined.
-  if (F) {
+  if (Sym) {
     Log::error(0, 0) << "function " << Name << " already defined\n";
     return nullptr;
   }
-
-  C.ST.enterScope();
 
   // Create vector with llvm types for args.
   std::vector<llvm::Type *> ArgsType;
@@ -93,8 +93,8 @@ Value *FuncDeclNode::codegen(Context &C) {
 
   // Create function signature.
   FunctionType *FT = FunctionType::get(ReturnTy->emit(C), ArgsType, false);
-  F = Function::Create(FT, GlobalValue::LinkageTypes::ExternalLinkage, Name,
-                       &C.getModule());
+  auto F = Function::Create(FT, GlobalValue::LinkageTypes::ExternalLinkage,
+                            Name, &C.getModule());
 
   // set args
   unsigned Idx = 0;
@@ -103,6 +103,13 @@ Value *FuncDeclNode::codegen(Context &C) {
 
   BasicBlock *BB = BasicBlock::Create(C.getContext(), "entry", F);
   C.getBuilder().SetInsertPoint(BB);
+
+  std::vector<Type *> ArgsTy;
+  for (auto Arg : *Args)
+    ArgsTy.push_back(Arg->Ty);
+
+  C.ST.set(Name, new FuncSymbol(F, ReturnTy, ArgsTy));
+  C.ST.enterScope();
 
   // insert args into scope
   Idx = 0;
@@ -144,32 +151,11 @@ Value *VarDeclNode::codegen(Context &C) {
 
   C.ST.set(Id, new VariableSymbol(Alloca, Ty));
 
-  if (Assign) {
+  if (Assign)
     Assign->codegen(C);
-  }
 
   return nullptr;
 }
-
-// Value *ArrayDeclNode::codegen(Context &C) {
-//    if (C.ST.get(Id)) {
-//        Log::error(0, 0) << "variable " << Id << " already declared.\n";
-//        return nullptr;
-//    }
-//
-//    Function *TheFunction = C.getBuilder().GetInsertBlock()->getParent();
-//
-//    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, C.getContext(),
-//    Id, Ty->emit(C));
-//
-//    C.ST.set(Id, new ArraySymbol(Alloca, dynamic_cast<ArrayType *>(Ty)));
-//
-//    if (Assign) {
-//        Assign->codegen(C);
-//    }
-//
-//    return nullptr;
-//}
 
 Value *ReturnNode::codegen(Context &C) {
   C.ReturnFound = true;
@@ -226,12 +212,13 @@ Value *ForNode::codegen(Context &C) {
 
   auto CondV = End->codegen(C);
   if (!CondV)
-      return nullptr;
+    return nullptr;
 
   auto CondTy = Type::from(CondV->getType());
-  if (!CondTy) {
-      Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '" << Type::boolTy()->str() << "'";
-      return nullptr;
+  if (!CondTy->isBoolTy()) {
+    Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '"
+                     << Type::boolTy()->str() << "'\n";
+    return nullptr;
   }
 
   Builder.CreateCondBr(CondV, LoopBB, AfterLoopBB);
@@ -270,7 +257,12 @@ Value *WhileNode::codegen(Context &C) {
   Builder.SetInsertPoint(BeforeLoopBB);
 
   auto CondV = Condition->codegen(C);
-  assert(CondV);
+  auto CondTy = Type::from(CondV->getType());
+  if (!CondTy->isBoolTy()) {
+    Log::error(0, 0) << "'" << CondTy->str() << "' is not convertible to '"
+                     << Type::boolTy()->str() << "'\n";
+    return nullptr;
+  }
 
   Builder.CreateCondBr(CondV, LoopBB, AfterLoopBB);
 
@@ -290,7 +282,7 @@ Value *WhileNode::codegen(Context &C) {
 Value *VariableExprNode::codegen(Context &C) {
   auto Sym = dynamic_cast<VariableSymbol *>(C.ST.get(Id));
   if (!Sym) {
-    Log::error(0, 0) << "variable " << Id << " not found.\n";
+    Log::error(0, 0) << "variable '" << Id << "' not found.\n";
     return nullptr;
   }
 
@@ -333,12 +325,20 @@ Value *VarDeclNodeListStmt::codegen(Context &C) {
 
 Value *ExprNegativeNode::codegen(Context &C) {
   Value *RHSV = RHS->codegen(C);
-  return C.getBuilder().CreateNeg(RHSV, "negtmp");
+  return C.getBuilder().CreateNeg(RHSV);
 }
 
 Value *ExprNotNode::codegen(Context &C) {
   Value *RHSV = RHS->codegen(C);
-  return C.getBuilder().CreateNot(RHSV, "nottmp");
+  auto Ty = Type::from(RHSV->getType());
+
+  if (!Ty->isBoolTy()) {
+    Log::error(0, 0) << "'" << Ty->str() << "' is not convertible to '"
+                     << Type::boolTy()->str() << "'\n";
+    return nullptr;
+  }
+
+  return C.getBuilder().CreateNot(RHSV);
 }
 
 Value *ExprOperationNode::codegen(Context &C) {
@@ -355,7 +355,7 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::DIV:
     return C.getBuilder().CreateUDiv(LHSV, RHSV);
   case BinOp::MOD:
-    return C.getBuilder().CreateURem(LHSV, RHSV, "modtmp");
+    return C.getBuilder().CreateURem(LHSV, RHSV);
   case BinOp::LT:
     return C.getBuilder().CreateICmpSLT(LHSV, RHSV);
   case BinOp::LTEQ:
@@ -369,22 +369,21 @@ Value *ExprOperationNode::codegen(Context &C) {
   case BinOp::DIFF:
     return C.getBuilder().CreateICmpNE(LHSV, RHSV);
   case BinOp::AND:
-    return  C.getBuilder().CreateAnd(LHSV, RHSV, "andtmp");
+    return C.getBuilder().CreateAnd(LHSV, RHSV);
   case BinOp::OR:
-    return C.getBuilder().CreateOr(LHSV, RHSV, "ortmp");
+    return C.getBuilder().CreateOr(LHSV, RHSV);
   }
-
-  return nullptr;
 }
 
 Value *CallExprNode::codegen(Context &C) {
-  Function *CalleeF = C.getModule().getFunction(Callee);
-  if (!CalleeF) {
-    Log::error(0, 0) << "function " << Callee << " not found.\n";
+  auto Sym = dynamic_cast<FuncSymbol *>(C.ST.get(Callee));
+
+  if (!Sym) {
+    Log::error(0, 0) << "function '" << Callee << "' not found.\n";
     return nullptr;
   }
 
-  if (CalleeF->arg_size() != Args->size()) {
+  if (Sym->Function->arg_size() != Args->size()) {
     Log::error(0, 0) << "incorrect number of arguments passed to function "
                      << Callee << "\n";
     return nullptr;
@@ -397,7 +396,26 @@ Value *CallExprNode::codegen(Context &C) {
       return nullptr;
   }
 
-  return C.getBuilder().CreateCall(CalleeF, ArgsV, "calltmp");
+  bool ErrorFound = false;
+  for (unsigned i = 0; i < Args->size(); ++i) {
+
+    auto DeclaredTy = Sym->Args[i];
+    auto PassedTy = Type::from(ArgsV[i]->getType());
+
+    if (*DeclaredTy != *PassedTy) {
+      Log::error(0, 0) << "wrong param type passed to function '" << Callee
+                       << "' at index '" << std::to_string(i) << "', expected '"
+                       << DeclaredTy->str() << "', but found '"
+                       << PassedTy->str() << "'\n";
+
+      ErrorFound = true;
+    }
+  }
+
+  if (ErrorFound)
+    return nullptr;
+
+  return C.getBuilder().CreateCall(Sym->Function, ArgsV);
 }
 
 Value *ProcDeclNode::codegen(Context &C) {
@@ -444,16 +462,15 @@ Value *CompoundAssignNode::codegen(Context &C) {
 
   auto Alloca = Sym->Alloca;
   Value *Store = Assign->codegen(C);
-  //
-  //  Type *AllocaTy = Alloca->getAllocatedType();
-  //  Type *StoreTy = Store->getType();
-  //
-  //  if (!C.typeCheck(AllocaTy, StoreTy)) {
-  //    Log::error(0, 0) << "cannot assign value of type '" <<
-  //    C.getType(StoreTy)
-  //                     << "', expected '" << C.getType(AllocaTy) << "'\n";
-  //    return nullptr;
-  //  }
+
+  auto AllocatedTy = Sym->Ty;
+  auto AssigningTy = Type::from(Store->getType());
+
+  if (*AllocatedTy != *AssigningTy) {
+    Log::error(0, 0) << "cannot assign value of type '" << AssigningTy->str()
+                     << "', expected '" << AllocatedTy->str() << "'\n";
+    return nullptr;
+  }
 
   Value *AllocaValue = C.getBuilder().CreateLoad(Alloca, Id);
   Value *Result = nullptr;
@@ -461,21 +478,19 @@ Value *CompoundAssignNode::codegen(Context &C) {
   switch (Op) {
   case BinOp::PLUS:
     Result = C.getBuilder().CreateAdd(Store, AllocaValue);
-    C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::MINUS:
     Result = C.getBuilder().CreateSub(Store, AllocaValue);
-    C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::TIMES:
     Result = C.getBuilder().CreateMul(Store, AllocaValue);
-    C.getBuilder().CreateStore(Result, Alloca);
     break;
   case BinOp::DIV:
     Result = C.getBuilder().CreateUDiv(Store, AllocaValue);
-    C.getBuilder().CreateStore(Result, Alloca);
     break;
   }
+
+  C.getBuilder().CreateStore(Result, Alloca);
 
   return nullptr;
 }

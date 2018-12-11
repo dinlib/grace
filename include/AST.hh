@@ -89,12 +89,12 @@ class LiteralNode : public ExprNode {};
 
 class BlockNode : public Node {
 public:
-  StmtList stmts;
+  StmtList Stmts;
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(Body" << std::endl;
-    for (auto stmt : stmts) {
-      stmt->dumpAST(os, level + 1);
+    for (auto Stmt : Stmts) {
+      Stmt->dumpAST(os, level + 1);
     }
     os << NestedLevel(level) << ")" << std::endl;
   }
@@ -327,7 +327,6 @@ public:
   }
 
   llvm::Value *codegen(Context &C) override;
-
 };
 
 class ExprOperationNode : public ExprNode {
