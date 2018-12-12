@@ -1,0 +1,19 @@
+
+def sum(x: int, y: int): int {
+	return x + y;
+}
+
+def main(): int {
+	var x, r = 0, i: int;
+
+	x = 2;
+
+	for (i = 0; i < 100; i += 1) {
+	    r = sum(x, i);
+	}
+
+	write r;
+
+	return 0;
+}
+
