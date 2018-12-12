@@ -3,9 +3,13 @@ def sum(x: int, y: int): int {
      return x + y;
 }
 
+def sum(a: int, b: int): int {      //Função já definida
+    return a + b;
+}
+
 def main(): int {
-    var x, y, z, i: int;
-    var b: bool;
+    var x, y, z, i, result: int;
+    var a, b: bool;
 
     x = 2;
     y = 6;
@@ -19,6 +23,8 @@ def main(): int {
             z = sum(sum(x, y), 100 * i);
         }
     }
+
+    result = sum(a, b);     // Parâmetros da função com tipos inesperados
 
     return 0;
 }

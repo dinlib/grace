@@ -19,5 +19,9 @@ def main(): int {
 
     write x;
 
+    if(x + y) {     // Expressão não resulta em valor lógico
+        write(y);
+    }
+
     return 0;
 }
