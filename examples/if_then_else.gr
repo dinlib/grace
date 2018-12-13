@@ -19,5 +19,13 @@ def main(): int {
 
     write x;
 
+    if(x + y == 10) {
+        write x;
+    }
+
+    if(x - y) {    
+        write y;
+    }
+
     return 0;
 }

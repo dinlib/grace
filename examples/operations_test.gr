@@ -25,13 +25,12 @@ def main(): int {
     d = -10;
 
     //Operações que geram erro
-    x = a;  // Atribuindo inteiro para variável booleana
-    a = x;  // Atribuindo bool para variável inteira
-    f = a + b; // Usando variável não declarada
-    a = sum(a, b); // Operação correta
-    x = sum(a, b); // Retorno da função incompatível com a variável que receberá o retorno 
-    a = sub(b, c); // Uso de função não declarada
-    a = a + x;     // Operação com valores de tipos diferentes
+    x = a; 
+    a = x;  
+    f = a + b;  
+    x = sum(a, b);  
+    a = sub(b, c); 
+    a = a + x;     
     a = x + y;
     a = x - y;
     a = x * y;

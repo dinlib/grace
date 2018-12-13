@@ -5,12 +5,12 @@ def mul(a: int, b: int): int {
 def main():int {
   var a = 10, result: int;
 
-  result = mul(a, b); // Variável b não declarada
-  result = b;         // Variável b não declarada
+  result = mul(a, b);
+  result = b;         
 
 
-  skip;   // Comando skip fora de laço
+  skip;  
 
-  stop;   // Comando stop fora de laço
+  stop;   
 
 }
