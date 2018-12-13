@@ -8,8 +8,10 @@ def main(): int {
 
 	x = 2;
 
-	for (i = 0; i < 100; i += 1) {
-	    r = sum(x, i);
+	i = 0;
+	while (i < 100) {
+	    r += sum(x, i);
+			i += 1;
 	}
 
 	write r;

@@ -84,7 +84,6 @@ int main(int argc, char **argv) {
   dest.flush();
 
   system("clang output.o");
-  system("rm -f output.o");
 
   return 0;
 }

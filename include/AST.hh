@@ -4,10 +4,10 @@
 #include "BinOp.hh"
 #include "llvm/IR/Value.h"
 #include <fstream>
+#include <location.hh>
 #include <string>
 #include <utility>
 #include <vector>
-#include <location.hh>
 
 namespace grace {
 
@@ -63,11 +63,12 @@ typedef std::vector<SpecVar *> SpecVarList;
 
 class Param {
 public:
-    yy::location loc;
+  yy::location loc;
   std::string Id;
   Type *Ty;
 
-  Param(const yy::location &loc, std::string Id, Type *Ty) : loc(loc), Id(std::move(Id)), Ty(Ty) {}
+  Param(const yy::location &loc, std::string Id, Type *Ty)
+      : loc(loc), Id(std::move(Id)), Ty(Ty) {}
 };
 
 typedef std::vector<Param *> ParamList;
@@ -75,11 +76,11 @@ typedef std::vector<ExprNode *> ExprList;
 
 class Node {
 public:
-    yy::location loc;
+  yy::location loc;
 
-    Node(const yy::location &loc) : loc(loc) {}
+  Node(const yy::location &loc) : loc(loc) {}
 
-    virtual ~Node() = default;
+  virtual ~Node() = default;
 
   virtual void dumpAST(std::ostream &os, unsigned level) const = 0;
 
@@ -88,28 +89,26 @@ public:
 
 class StmtNode : virtual public Node {
 public:
-//    StmtNode(const yy::location &loc) : Node(loc) {}
+  //    StmtNode(const yy::location &loc) : Node(loc) {}
 };
 
 class ExprNode : virtual public Node {
 public:
-//    ExprNode(const yy::location &loc) : Node(loc) {}
+  //    ExprNode(const yy::location &loc) : Node(loc) {}
 };
 
 class LiteralNode : virtual public ExprNode {
 public:
-//    LiteralNode(const yy::location &loc) : Node(loc) {}
+  //    LiteralNode(const yy::location &loc) : Node(loc) {}
 };
 
 class BlockNode : public Node {
 public:
   StmtList Stmts;
 
-    BlockNode(const yy::location &loc) : Node(loc) {
+  BlockNode(const yy::location &loc) : Node(loc) {}
 
-    }
-
-    void dumpAST(std::ostream &os, unsigned level) const override {
+  void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(Body" << std::endl;
     for (auto Stmt : Stmts) {
       Stmt->dumpAST(os, level + 1);
@@ -126,7 +125,6 @@ protected:
   ExprNode *Assign;
 
 public:
-
   AssignNode(const yy::location &loc, std::string Id, ExprNode *Assign)
       : Node(loc), Id(std::move(Id)), Assign(Assign) {}
 
@@ -144,7 +142,8 @@ class CompoundAssignNode : public AssignNode {
 public:
   BinOp Op;
 
-  CompoundAssignNode(const yy::location &loc, std::string id, BinOp Op, ExprNode *Assign)
+  CompoundAssignNode(const yy::location &loc, std::string id, BinOp Op,
+                     ExprNode *Assign)
       : Node(loc), AssignNode(loc, id, Assign), Op(Op) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -174,7 +173,8 @@ class LiteralStringNode : public LiteralNode {
 public:
   std::string Str;
 
-  LiteralStringNode(const yy::location &loc, const std::string &Str) : Node(loc), Str(Str) {}
+  LiteralStringNode(const yy::location &loc, const std::string &Str)
+      : Node(loc), Str(Str) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(literal value: " << Str << ")";
@@ -199,8 +199,8 @@ public:
 
 class SpecVar {
 public:
-    yy::location loc;
-    std::string Id;
+  yy::location loc;
+  std::string Id;
   AssignNode *Assign;
 
   SpecVar(const yy::location &loc, std::string Id, AssignNode *Assign)
@@ -214,7 +214,8 @@ protected:
   Type *Ty;
 
 public:
-  VarDeclNode(const yy::location &loc, std::string Id, AssignNode *Assign, Type *Ty)
+  VarDeclNode(const yy::location &loc, std::string Id, AssignNode *Assign,
+              Type *Ty)
       : Node(loc), Id(std::move(Id)), Assign(Assign), Ty(Ty) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -236,11 +237,9 @@ class VarDeclNodeListStmt : public StmtNode {
 public:
   VarDeclNodeList varDeclList;
 
-    VarDeclNodeListStmt(const yy::location &loc) : Node(loc) {
+  VarDeclNodeListStmt(const yy::location &loc) : Node(loc) {}
 
-    }
-
-    void dumpAST(std::ostream &os, unsigned level) const override {
+  void dumpAST(std::ostream &os, unsigned level) const override {
     for (const auto &varDecl : varDeclList)
       varDecl->dumpAST(os, level);
   }
@@ -255,9 +254,10 @@ class FuncDeclNode : public StmtNode {
   BlockNode *Body;
 
 public:
-  FuncDeclNode(const yy::location &loc, std::string Name, Type *ReturnTy, ParamList *Args,
-               BlockNode *Body)
-      : Node(loc), Name(std::move(Name)), ReturnTy(ReturnTy), Args(Args), Body(Body) {}
+  FuncDeclNode(const yy::location &loc, std::string Name, Type *ReturnTy,
+               ParamList *Args, BlockNode *Body)
+      : Node(loc), Name(std::move(Name)), ReturnTy(ReturnTy), Args(Args),
+        Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(function Name: " << Name
@@ -275,7 +275,8 @@ class ProcDeclNode : public StmtNode {
   BlockNode *Body;
 
 public:
-  ProcDeclNode(const yy::location &loc, std::string Name, ParamList *Args, BlockNode *Body)
+  ProcDeclNode(const yy::location &loc, std::string Name, ParamList *Args,
+               BlockNode *Body)
       : Node(loc), Name(std::move(Name)), Args(Args), Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -293,7 +294,8 @@ class IfThenElseNode : public StmtNode {
   BlockNode *Then, *Else;
 
 public:
-  IfThenElseNode(const yy::location &loc, ExprNode *Condition, BlockNode *Then, BlockNode *Else)
+  IfThenElseNode(const yy::location &loc, ExprNode *Condition, BlockNode *Then,
+                 BlockNode *Else)
       : Node(loc), Condition(Condition), Then(Then), Else(Else) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -314,7 +316,8 @@ protected:
   std::string Id;
 
 public:
-    VariableExprNode(const yy::location &loc, std::string Id) : Node(loc), Id(std::move(Id)) {}
+  VariableExprNode(const yy::location &loc, std::string Id)
+      : Node(loc), Id(std::move(Id)) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(var " << Id << " )" << std::endl;
@@ -327,7 +330,8 @@ class ExprNegativeNode : public ExprNode {
   ExprNode *RHS;
 
 public:
-   ExprNegativeNode(const yy::location &loc, ExprNode *RHS) : Node(loc), RHS(RHS) {}
+  ExprNegativeNode(const yy::location &loc, ExprNode *RHS)
+      : Node(loc), RHS(RHS) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(-" << std::endl;
@@ -358,7 +362,8 @@ class ExprOperationNode : public ExprNode {
   BinOp Op;
 
 public:
-  ExprOperationNode(const yy::location &loc, ExprNode *LHS, BinOp Op, ExprNode *RHS)
+  ExprOperationNode(const yy::location &loc, ExprNode *LHS, BinOp Op,
+                    ExprNode *RHS)
       : Node(loc), LHS(LHS), Op(Op), RHS(RHS) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -421,7 +426,8 @@ class ForNode : public StmtNode {
   BlockNode *Body;
 
 public:
-  ForNode(const yy::location &loc, AssignNode *Start, ExprNode *End, AssignNode *Step, BlockNode *Body)
+  ForNode(const yy::location &loc, AssignNode *Start, ExprNode *End,
+          AssignNode *Step, BlockNode *Body)
       : Node(loc), Start(Start), End(End), Step(Step), Body(Body) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
@@ -443,7 +449,7 @@ class ReturnNode : public StmtNode {
   ExprNode *expr;
 
 public:
-    ReturnNode(const yy::location &loc, ExprNode *expr) : Node(loc), expr(expr) {}
+  ReturnNode(const yy::location &loc, ExprNode *expr) : Node(loc), expr(expr) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(return ";
@@ -462,12 +468,9 @@ public:
 
 class StopNode : public StmtNode {
 public:
+  StopNode(const yy::location &loc) : Node(loc) {}
 
-    StopNode(const yy::location &loc) : Node(loc) {
-
-    }
-
-    void dumpAST(std::ostream &os, unsigned level) const override {
+  void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(stop)" << std::endl;
   }
 
@@ -476,12 +479,9 @@ public:
 
 class SkipNode : public StmtNode {
 public:
+  SkipNode(const yy::location &loc) : Node(loc) {}
 
-    SkipNode(const yy::location &loc) : Node(loc) {
-
-    }
-
-    void dumpAST(std::ostream &os, unsigned level) const override {
+  void dumpAST(std::ostream &os, unsigned level) const override {
     os << NestedLevel(level) << "(skip)" << std::endl;
   }
 
@@ -492,7 +492,8 @@ class WriteNode : public StmtNode {
   ExprList *Exprs;
 
 public:
-   WriteNode(const yy::location &loc, ExprList *Exprs) : Node(loc), Exprs(Exprs) {}
+  WriteNode(const yy::location &loc, ExprList *Exprs)
+      : Node(loc), Exprs(Exprs) {}
 
   void dumpAST(std::ostream &os, unsigned level) const override {}
 

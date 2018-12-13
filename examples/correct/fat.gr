@@ -1,0 +1,12 @@
+def fat(n: int): int {
+	if (n == 0 || n == 1) { return 1; }
+	return n * fat(n-1);
+}
+
+def main(): int {
+	var x = 10: int;
+
+	write fat(x);
+
+	return 0;
+}

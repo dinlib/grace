@@ -62,20 +62,15 @@ public:
 
   void set(const std::string &Identifier, Symbol *Sym) {
     if (get(Identifier) == nullptr)
-      Scopes.back()[Identifier] = Sym;
+      Scopes.front()[Identifier] = Sym;
   }
 
   void enterScope() {
-    Scopes.emplace_back();
+    std::unordered_map<std::string, Symbol *> NewScope;
+    Scopes.push_front(NewScope);
   }
 
-  void leaveScope() {
-//      auto Back = *Scopes.end();
-//      for (auto &Entry : Back)
-//          delete Entry.second;
-
-      Scopes.pop_back();
-  }
+  void leaveScope() { Scopes.pop_front(); }
 };
 }; // namespace grace
 
