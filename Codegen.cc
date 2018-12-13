@@ -346,33 +346,93 @@ Value *ExprNotNode::codegen(Context &C) {
 Value *ExprOperationNode::codegen(Context &C) {
     Value *LHSV = LHS->codegen(C);
     Value *RHSV = RHS->codegen(C);
+    
+    auto LHSVTy = Type::from(LHSV->getType());
+    auto RHSVTy = Type::from(RHSV->getType());
+    
+    if(LHSVTy->str() != RHSVTy->str()) {
+        Log::error(this->loc.begin) << "two operands no the same type.\n";
+        return nullptr;
+    }
 
     switch (Op) {
         case BinOp::PLUS:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'addiction' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateAdd(LHSV, RHSV);
         case BinOp::MINUS:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'subtraction' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateSub(LHSV, RHSV);
         case BinOp::TIMES:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'multiplication' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateMul(LHSV, RHSV);
         case BinOp::DIV:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'division' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateUDiv(LHSV, RHSV);
         case BinOp::MOD:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'remainder' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateURem(LHSV, RHSV);
         case BinOp::LT:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'less than' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpSLT(LHSV, RHSV);
         case BinOp::LTEQ:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'less than or equal' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpSLE(LHSV, RHSV);
         case BinOp::GT:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'greater than' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpSGT(LHSV, RHSV);
         case BinOp::GTEQ:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'greater than or equal' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpSGE(LHSV, RHSV);
         case BinOp::EQ:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'equal' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpEQ(LHSV, RHSV);
         case BinOp::DIFF:
+            if(!LHSVTy->isIntTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'not equal' comparation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateICmpNE(LHSV, RHSV);
         case BinOp::AND:
+            if(!LHSVTy->isBoolTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'and' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateAnd(LHSV, RHSV);
         case BinOp::OR:
+            if(!LHSVTy->isBoolTy()) {
+                Log::error(this->loc.begin) << "The type '" << LHSVTy->str() << "' is not compatible with 'or' operation.\n"; 
+                return nullptr;      
+            }
             return C.getBuilder().CreateOr(LHSV, RHSV);
     }
 }
