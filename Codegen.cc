@@ -351,7 +351,7 @@ Value *ExprOperationNode::codegen(Context &C) {
     auto RHSVTy = Type::from(RHSV->getType());
     
     if(LHSVTy->str() != RHSVTy->str()) {
-        Log::error(this->loc.begin) << "two operands no the same type.\n";
+        Log::error(this->loc.begin) << "two operands are not the same type.\n";
         return nullptr;
     }
 
