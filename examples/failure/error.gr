@@ -1,0 +1,6 @@
+def main(): {
+
+	var :int;
+
+	return 0;
+}

@@ -17,6 +17,7 @@ def main(): int {
     //b = y;
 
     while (z > 10) {
+        var x: int;
         z = z - x;
 
         for (i = 0; i < 10; i = i + 1) {

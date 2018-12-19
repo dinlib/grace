@@ -23,7 +23,7 @@ def main(): int {
         write x;
     }
 
-    if(x - y) {    
+    if(true) {    
         write y;
     }
 

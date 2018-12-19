@@ -1,0 +1,14 @@
+
+
+def main(): int {
+    var x = 1, y = 2, z = x + y: int;
+    var b : bool;
+
+    b = x > y;
+    if (b) {
+        write x;
+    } else {
+        write y;
+    }
+    return 0;
+}

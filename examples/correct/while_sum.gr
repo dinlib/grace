@@ -10,11 +10,14 @@ def main(): int {
 
 	i = 0;
 	while (i < 100) {
-	    r += sum(x, i);
-			i += 1;
+		i += 1;
+		if (i % 2 == 0) {
+			skip;
+		}
+		write i;	
 	}
 
-	write r;
+	write i;
 
 	return 0;
 }

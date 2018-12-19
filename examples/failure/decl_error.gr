@@ -1,11 +1,13 @@
-def sum(x: int, y: int): int {
-    return x + y;
+def sum(x: int, y: int): bool {
+    return;
 }
 
-def sum(): int {
-    return x + y;
-}
+//def sum(): int {
+//    return x + y;
+//}
 
 def main(): int {
+    var x: int;
+    var x: bool;
     return 0;
 }
